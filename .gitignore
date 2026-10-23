@@ -1,0 +1,77 @@
+# ─── Credentials (NEVER commit these) ───────────────────────────
+kaggle.json
+.env
+api.txt
+
+# ─── Archive folder (credentials + out-of-scope code) ────────────
+_archive/
+
+# ─── Raw and processed data ──────────────────────────────────────
+data/raw/rossmann/
+data/raw/store_item/
+data/processed/
+# Keep the directory structure markers
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+# Allow acquisition log (no credentials, just metadata)
+!data/raw/acquisition_log.json
+!data/raw/acquisition_log.txt
+
+# ─── Data file extensions ─────────────────────────────────────────
+*.csv
+*.zip
+*.parquet
+*.sqlite
+*.db
+
+# ─── Model artifacts ──────────────────────────────────────────────
+models/scalers/rossmann/
+models/scalers/store_item/
+models/*.pkl
+models/scalers/*.pkl
+!models/scalers/.gitkeep
+
+# ─── Report figures (regenerated from scripts) ───────────────────
+report/figures/*.png
+report/figures/*.jpg
+report/figures/*.jpeg
+report/figures/*.pdf
+!report/figures/.gitkeep
+# Keep LaTeX source
+!report/*.tex
+!report/main.tex
+
+# ─── Python ───────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# ─── Virtual environments ─────────────────────────────────────────
+.venv/
+venv/
+ENV/
+
+# ─── Jupyter ──────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ─── LaTeX build artefacts ────────────────────────────────────────
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.toc
+*.synctex.gz
+*.bbl
+*.blg
+*.nav
+*.snm
+*.vrb
+
+# ─── IDE configs ──────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
