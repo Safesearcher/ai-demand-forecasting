@@ -1,0 +1,28 @@
+[
+  {
+    "timestamp": "2026-10-23T21:36:51.855851",
+    "dataset": "rossmann-store-sales",
+    "source": "Kaggle API",
+    "files": {
+      "train.csv": {
+        "rows": 1017209,
+        "columns": ["Store", "DayOfWeek", "Date", "Sales", "Customers", "Open", "Promo", "StateHoliday", "SchoolHoliday"]
+      },
+      "store.csv": {
+        "rows": 1115,
+        "columns": ["Store", "StoreType", "Assortment", "CompetitionDistance", "CompetitionOpenSinceMonth", "CompetitionOpenSinceYear", "Promo2", "Promo2SinceWeek", "Promo2SinceYear", "PromoInterval"]
+      }
+    }
+  },
+  {
+    "timestamp": "2026-10-23T21:36:54.618425",
+    "dataset": "demand-forecasting-kernels-only",
+    "source": "Kaggle API",
+    "files": {
+      "train.csv": {
+        "rows": 913000,
+        "columns": ["date", "store", "item", "sales"]
+      }
+    }
+  }
+]
