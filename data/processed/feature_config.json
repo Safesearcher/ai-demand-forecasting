@@ -1,0 +1,157 @@
+{
+  "rossmann": {
+    "pipeline": "Rossmann",
+    "holdout_days": 42,
+    "lag_warmup_rows_dropped_from_train": 31220,
+    "max_lag_used": 28,
+    "target_column": "Sales",
+    "target_log_transform": false,
+    "target_log_transform_note": "Sales stored in original units. Apply log1p inside model training if needed.",
+    "lag_horizon_note": "Sales_lag_1 is valid for 1-step-ahead only. For direct multi-horizon forecasting, the modeling phase recomputes lags relative to the forecast origin: lag >= h for h-step-ahead.",
+    "customers_note": "Same-day Customers dropped (r\u22480.82 with Sales \u2014 unknown in advance).",
+    "temporal_features": [
+      "day_of_week",
+      "day_of_month",
+      "week_of_year",
+      "month",
+      "year",
+      "is_weekend",
+      "day_of_week_sin",
+      "day_of_week_cos",
+      "month_sin",
+      "month_cos"
+    ],
+    "lag_features": [
+      "Sales_lag_1",
+      "Sales_lag_7",
+      "Sales_lag_14",
+      "Sales_lag_28",
+      "Customers_lag_7",
+      "Customers_lag_14"
+    ],
+    "rolling_features": [
+      "Sales_roll_mean_7",
+      "Sales_roll_mean_14",
+      "Sales_roll_mean_28",
+      "Sales_roll_std_7",
+      "Sales_roll_std_14",
+      "Sales_roll_std_28",
+      "Customers_roll_mean_7",
+      "Customers_roll_mean_14",
+      "Customers_roll_std_7",
+      "Customers_roll_std_14"
+    ],
+    "categorical_encoding": {
+      "StoreType": {
+        "method": "label",
+        "n_classes": 5
+      },
+      "Assortment": {
+        "method": "label",
+        "n_classes": 4
+      },
+      "StateHoliday": {
+        "method": "label",
+        "n_classes": 5
+      },
+      "PromoInterval": {
+        "method": "label",
+        "n_classes": 5
+      }
+    },
+    "numerical_scaling": {
+      "scaler_type": "standard",
+      "note": "Fit on training split only. LightGBM does not need scaling.",
+      "scaled_columns": [
+        "CompetitionDistance",
+        "day_of_week",
+        "day_of_month",
+        "week_of_year",
+        "month",
+        "year",
+        "day_of_week_sin",
+        "day_of_week_cos",
+        "month_sin",
+        "month_cos",
+        "Sales_lag_1",
+        "Sales_lag_7",
+        "Sales_lag_14",
+        "Sales_lag_28",
+        "Sales_roll_mean_7",
+        "Sales_roll_std_7",
+        "Sales_roll_mean_14",
+        "Sales_roll_std_14",
+        "Sales_roll_mean_28",
+        "Sales_roll_std_28",
+        "Customers_lag_7",
+        "Customers_lag_14",
+        "Customers_roll_mean_7",
+        "Customers_roll_std_7",
+        "Customers_roll_mean_14",
+        "Customers_roll_std_14"
+      ]
+    }
+  },
+  "store_item": {
+    "pipeline": "Store Item",
+    "holdout_days": 90,
+    "lag_warmup_rows_dropped_from_train": 14000,
+    "max_lag_used": 28,
+    "target_column": "Sales",
+    "target_log_transform": false,
+    "target_log_transform_note": "Sales stored in original units. Apply log1p inside model training if needed.",
+    "lag_horizon_note": "Sales_lag_1 is valid for 1-step-ahead only. For direct multi-horizon forecasting, the modeling phase recomputes lags relative to the forecast origin: lag >= h for h-step-ahead.",
+    "temporal_features": [
+      "day_of_week",
+      "day_of_month",
+      "week_of_year",
+      "month",
+      "year",
+      "is_weekend",
+      "day_of_week_sin",
+      "day_of_week_cos",
+      "month_sin",
+      "month_cos"
+    ],
+    "lag_features": [
+      "Sales_lag_1",
+      "Sales_lag_7",
+      "Sales_lag_14",
+      "Sales_lag_28"
+    ],
+    "rolling_features": [
+      "Sales_roll_mean_7",
+      "Sales_roll_mean_14",
+      "Sales_roll_mean_28",
+      "Sales_roll_std_7",
+      "Sales_roll_std_14",
+      "Sales_roll_std_28"
+    ],
+    "categorical_encoding": {},
+    "numerical_scaling": {
+      "scaler_type": "standard",
+      "note": "Fit on training split only. LightGBM does not need scaling.",
+      "scaled_columns": [
+        "day_of_week",
+        "day_of_month",
+        "week_of_year",
+        "month",
+        "year",
+        "day_of_week_sin",
+        "day_of_week_cos",
+        "month_sin",
+        "month_cos",
+        "Sales_lag_1",
+        "Sales_lag_7",
+        "Sales_lag_14",
+        "Sales_lag_28",
+        "Sales_roll_mean_7",
+        "Sales_roll_std_7",
+        "Sales_roll_mean_14",
+        "Sales_roll_std_14",
+        "Sales_roll_mean_28",
+        "Sales_roll_std_28"
+      ]
+    }
+  }
+}

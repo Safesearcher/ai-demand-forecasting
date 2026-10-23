@@ -1,59 +1,50 @@
 # ─── Credentials (NEVER commit these) ───────────────────────────
 kaggle.json
 .env
+api
 api.txt
 
 # ─── Archive folder (credentials + out-of-scope code) ────────────
 _archive/
 
-# ─── Raw and processed data ──────────────────────────────────────
-data/raw/rossmann/
-data/raw/store_item/
-data/processed/
-# Keep the directory structure markers
+# ─── Data folders & specific exceptions ───────────────────────────
+data/raw/*
 !data/raw/.gitkeep
-!data/processed/.gitkeep
-# Allow acquisition log (no credentials, just metadata)
 !data/raw/acquisition_log.json
 !data/raw/acquisition_log.txt
 
-# ─── Data file extensions ─────────────────────────────────────────
+data/processed/*
+!data/processed/.gitkeep
+!data/processed/cleaning_report.json
+!data/processed/feature_config.json
+
+# ─── Data and model file extensions ──────────────────────────────
 *.csv
 *.zip
 *.parquet
 *.sqlite
 *.db
+*.pkl
+*.joblib
 
 # ─── Model artifacts ──────────────────────────────────────────────
-models/scalers/rossmann/
-models/scalers/store_item/
-models/*.pkl
-models/scalers/*.pkl
+models/*
+!models/scalers/
+models/scalers/*
 !models/scalers/.gitkeep
 
-# ─── Report figures (regenerated from scripts) ───────────────────
-report/figures/*.png
-report/figures/*.jpg
-report/figures/*.jpeg
-report/figures/*.pdf
-!report/figures/.gitkeep
-# Keep LaTeX source
+# ─── Report & deliverables ────────────────────────────────────────
+# Ignore intermediate draft copies, build artifacts, and auxiliary PDFs
+report/* (1).*
+report/main_fixed.*
+report/*.pdf
+
+# Ensure report figures and final deliverable PDF are allowed
+!report/figures/
+!report/figures/*
 !report/*.tex
-!report/main.tex
-
-# ─── Python ───────────────────────────────────────────────────────
-__pycache__/
-*.py[cod]
-*$py.class
-*.pyo
-
-# ─── Virtual environments ─────────────────────────────────────────
-.venv/
-venv/
-ENV/
-
-# ─── Jupyter ──────────────────────────────────────────────────────
-.ipynb_checkpoints/
+!report/Deliverable1_Report.pdf
+!report/.gitkeep
 
 # ─── LaTeX build artefacts ────────────────────────────────────────
 *.aux
@@ -69,7 +60,17 @@ ENV/
 *.snm
 *.vrb
 
-# ─── IDE configs ──────────────────────────────────────────────────
+# ─── Python & environments ────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.venv/
+venv/
+ENV/
+
+# ─── Jupyter & IDEs ───────────────────────────────────────────────
+.ipynb_checkpoints/
 .vscode/
 .idea/
 *.swp
