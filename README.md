@@ -14,8 +14,8 @@ This project builds a web application that learns from historical sales data, fo
 | Name | Student ID | Core Contribution |
 |---|---|---|
 | Rai Fahd Sultan | 24L-2509 | Problem Definition & Data Pipelines |
-| Muhammad Ayan | 24L-2560 | Data Cleaning & Feature Engineering |
-| Taha Imran | 24L-2568 | Exploratory Data Analysis & Technical Report |
+| Muhammad Ayan | 24L-2568 | Data Cleaning & Feature Engineering |
+| Taha Imran | 24L-2560 | Exploratory Data Analysis & Technical Report |
 
 ### Workflow
 
