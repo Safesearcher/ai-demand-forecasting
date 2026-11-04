@@ -1,0 +1,23 @@
+seed: 42
+
+training:
+  epochs: 50
+  batch_size: 1024
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+  patience: 8
+  min_delta: 0.00001
+
+mlp:
+  hidden_sizes: [256, 128, 64]
+  dropout: 0.2
+  embedding_dims: {}
+
+lgbm:
+  num_boost_round: 2000
+  early_stopping_rounds: 100
+  params:
+    learning_rate: 0.05
+    num_leaves: 31
+    min_child_samples: 20
+    feature_fraction: 0.9
