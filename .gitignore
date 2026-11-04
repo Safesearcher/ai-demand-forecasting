@@ -1,6 +1,7 @@
 # ─── Credentials (NEVER commit these) ───────────────────────────
 kaggle.json
 .env
+data/
 api
 api.txt
 
@@ -29,6 +30,8 @@ data/processed/*
 
 # ─── Model artifacts ──────────────────────────────────────────────
 models/*
+models/*.pt
+models/*.txt
 !models/scalers/
 models/scalers/*
 !models/scalers/.gitkeep
