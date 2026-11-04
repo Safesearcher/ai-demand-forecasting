@@ -1,0 +1,56 @@
+\begin{table}
+\caption{B subgroup forecast errors}
+\label{tab:subgroup-errors-B}
+\begin{tabular}{llrrrrrrl}
+\toprule
+subgroup & value & rows & wmape & bias & coverage & stockout\_alert\_recall & coverage\_flag & model \\
+\midrule
+store & 1 & 4500 & 0.4306 & -20.2650 & 0.5040 & NaN & True & lgbm \\
+store & 2 & 4500 & 0.4924 & -29.7375 & 0.3958 & NaN & True & lgbm \\
+store & 3 & 4500 & 0.5500 & -38.4077 & 0.3222 & NaN & True & lgbm \\
+store & 4 & 4500 & 0.5001 & -30.7288 & 0.3856 & NaN & True & lgbm \\
+store & 5 & 4500 & 0.4674 & -26.2001 & 0.4244 & NaN & True & lgbm \\
+store & 6 & 4500 & 0.4243 & -16.2501 & 0.5936 & NaN & True & lgbm \\
+store & 7 & 4500 & 0.4232 & -16.2144 & 0.5956 & NaN & True & lgbm \\
+store & 8 & 4500 & 0.3941 & -13.0360 & 0.6529 & NaN & True & lgbm \\
+store & 9 & 4500 & 0.5319 & -35.3452 & 0.3491 & NaN & True & lgbm \\
+store & 10 & 4500 & 0.4750 & -26.6181 & 0.4231 & NaN & True & lgbm \\
+item\_volume\_tier & high & 15030 & 0.4882 & -27.4069 & 0.4277 & NaN & True & lgbm \\
+item\_volume\_tier & low & 15030 & 0.4790 & -24.6368 & 0.4811 & NaN & True & lgbm \\
+item\_volume\_tier & medium & 14940 & 0.4665 & -23.7882 & 0.4852 & NaN & True & lgbm \\
+day\_of\_week & 0 & 6000 & 0.3795 & -14.7342 & 0.6213 & NaN & True & lgbm \\
+day\_of\_week & 1 & 6500 & 0.4430 & -21.5315 & 0.5191 & NaN & True & lgbm \\
+day\_of\_week & 2 & 6500 & 0.4453 & -21.8126 & 0.5086 & NaN & True & lgbm \\
+day\_of\_week & 3 & 6500 & 0.4717 & -25.1194 & 0.4617 & NaN & True & lgbm \\
+day\_of\_week & 4 & 6500 & 0.4964 & -27.5300 & 0.4288 & NaN & True & lgbm \\
+day\_of\_week & 5 & 6500 & 0.5206 & -31.0241 & 0.3738 & NaN & True & lgbm \\
+day\_of\_week & 6 & 6500 & 0.5435 & -34.3990 & 0.3511 & NaN & True & lgbm \\
+month & 10 & 14500 & 0.4968 & -28.0676 & 0.4229 & NaN & True & lgbm \\
+month & 11 & 15000 & 0.5275 & -32.3331 & 0.3773 & NaN & True & lgbm \\
+month & 12 & 15500 & 0.3900 & -15.8475 & 0.5881 & NaN & True & lgbm \\
+store & 1 & 4500 & 0.9896 & -49.0490 & 0.0000 & NaN & True & mlp \\
+store & 2 & 4500 & 0.9921 & -60.6980 & 0.0000 & NaN & True & mlp \\
+store & 3 & 4500 & 0.9927 & -69.6705 & 0.0000 & NaN & True & mlp \\
+store & 4 & 4500 & 0.9912 & -61.6663 & 0.0000 & NaN & True & mlp \\
+store & 5 & 4500 & 0.9913 & -56.8104 & 0.0000 & NaN & True & mlp \\
+store & 6 & 4500 & 0.9882 & -40.9889 & 0.0000 & NaN & True & mlp \\
+store & 7 & 4500 & 0.9875 & -40.9457 & 0.0000 & NaN & True & mlp \\
+store & 8 & 4500 & 0.9865 & -37.5137 & 0.0000 & NaN & True & mlp \\
+store & 9 & 4500 & 0.9924 & -66.7657 & 0.0000 & NaN & True & mlp \\
+store & 10 & 4500 & 0.9913 & -57.1098 & 0.0000 & NaN & True & mlp \\
+item\_volume\_tier & high & 15030 & 0.9912 & -57.0753 & 0.0000 & NaN & True & mlp \\
+item\_volume\_tier & low & 15030 & 0.9904 & -52.8274 & 0.0000 & NaN & True & mlp \\
+item\_volume\_tier & medium & 14940 & 0.9904 & -52.4527 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 0 & 6000 & 0.9886 & -42.8818 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 1 & 6500 & 0.9903 & -50.2913 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 2 & 6500 & 0.9904 & -50.5789 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 3 & 6500 & 0.9910 & -54.3472 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 4 & 6500 & 0.9913 & -56.4667 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 5 & 6500 & 0.9910 & -59.9806 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 6 & 6500 & 0.9913 & -63.4415 & 0.0000 & NaN & True & mlp \\
+month & 10 & 14500 & 0.9913 & -57.0444 & 0.0000 & NaN & True & mlp \\
+month & 11 & 15000 & 0.9918 & -61.4132 & 0.0000 & NaN & True & mlp \\
+month & 12 & 15500 & 0.9884 & -44.3316 & 0.0000 & NaN & True & mlp \\
+\bottomrule
+\end{tabular}
+\end{table}

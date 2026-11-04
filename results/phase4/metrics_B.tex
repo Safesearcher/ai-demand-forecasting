@@ -1,0 +1,12 @@
+\begin{table}
+\caption{B test forecast metrics}
+\label{tab:metrics-B}
+\begin{tabular}{llrrrrrrrrr}
+\toprule
+pipeline & model & mae & rmse & wmape & bias & pinball\_p10 & pinball\_p50 & pinball\_p90 & coverage\_p10\_p90 & mean\_interval\_width \\
+\midrule
+B & lgbm & 26.1254 & 34.7554 & 0.4782 & -25.2803 & 4.0656 & 13.0627 & 12.6355 & 0.4646 & 34.3306 \\
+B & mlp & 54.1218 & 61.1426 & 0.9907 & -54.1218 & 5.4631 & 27.0609 & 47.4490 & 0.0000 & 1.9102 \\
+\bottomrule
+\end{tabular}
+\end{table}

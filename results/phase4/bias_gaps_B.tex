@@ -1,0 +1,18 @@
+\begin{table}
+\caption{B subgroup bias gaps}
+\label{tab:bias-gaps-B}
+\begin{tabular}{llllrrrrrl}
+\toprule
+model & subgroup & best\_value & worst\_value & best\_wmape & worst\_wmape & wmape\_gap & best\_bias & worst\_bias & worst\_direction \\
+\midrule
+lgbm & day\_of\_week & 0 & 6 & 0.3795 & 0.5435 & 0.1639 & -14.7342 & -34.3990 & under \\
+lgbm & item\_volume\_tier & medium & high & 0.4665 & 0.4882 & 0.0217 & -23.7882 & -27.4069 & under \\
+lgbm & month & 12 & 11 & 0.3900 & 0.5275 & 0.1375 & -15.8475 & -32.3331 & under \\
+lgbm & store & 8 & 3 & 0.3941 & 0.5500 & 0.1559 & -13.0360 & -38.4077 & under \\
+mlp & day\_of\_week & 0 & 6 & 0.9886 & 0.9913 & 0.0027 & -42.8818 & -63.4415 & under \\
+mlp & item\_volume\_tier & low & high & 0.9904 & 0.9912 & 0.0008 & -52.8274 & -57.0753 & under \\
+mlp & month & 12 & 11 & 0.9884 & 0.9918 & 0.0033 & -44.3316 & -61.4132 & under \\
+mlp & store & 8 & 3 & 0.9865 & 0.9927 & 0.0061 & -37.5137 & -69.6705 & under \\
+\bottomrule
+\end{tabular}
+\end{table}
