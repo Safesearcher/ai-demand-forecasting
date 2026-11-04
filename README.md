@@ -124,6 +124,67 @@ This script generates 10 publication-quality plots (300 DPI) saved to `report/fi
 9. `store_item_zero_summary.png` (zero-demand incidence analysis)
 10. `time_based_split_diagram.png` (time-based holdout validation schema)
 
+## Phase 3: Training
+
+Phase 3 trains separate probabilistic forecasting pipelines for Rossmann (A)
+and Store Item (B). The Deliverable 1 holdout remains untouched for final
+evaluation; internal validation is carved chronologically from the training
+period.
+
+Install the pinned modeling dependencies:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Train the configurable MLP:
+
+```bash
+python src/train.py --pipeline A --model mlp --horizon 7 --config configs/config.yaml
+python src/train.py --pipeline B --model mlp --horizon 7 --config configs/config.yaml
+```
+
+Train the LightGBM quantile comparison model:
+
+```bash
+python src/train.py --pipeline A --model lgbm --horizon 7 --config configs/config.yaml
+python src/train.py --pipeline B --model lgbm --horizon 7 --config configs/config.yaml
+```
+
+Run a short shape-and-loss smoke check before a full run:
+
+```bash
+python src/train.py --pipeline A --model mlp --horizon 7 --config configs/config.yaml --smoke
+```
+
+Training writes model weights to `models/`, loss curves and holdout
+predictions to `results/`, and never writes source data. Tune with:
+
+```bash
+python src/tune.py --pipeline A --model mlp --trials 15 --horizon 7 --config configs/config.yaml
+```
+
+Model weights download link: **TODO - add Google Drive or Hugging Face URL.**
+
+## Phase 4: Evaluation
+
+Evaluate the available prediction artifacts for one pipeline without
+generating missing model outputs:
+
+```bash
+python src/evaluate.py --pipeline B
+python src/evaluate.py --pipeline B --cv
+```
+
+Evaluation writes metrics, chronological split summaries, subgroup error
+tables, and reports to `results/phase4/`. Publication-quality figures are
+written to `report/figures/phase4/`. Pipeline A and baseline models are
+evaluated automatically after their prediction artifacts are available.
+
+Stockout-alert classification requires validation prediction files to choose
+the simulated-stock multiplier on validation only. The evaluator refuses to
+choose that multiplier from the test set.
+
 ## Important Disclaimers
 
 1. **Inventory, lead times, and incoming orders are simulated/user-entered:** The datasets do not contain inventory levels or lead times. These values are simulated or user-entered and are labeled as such in the application.
