@@ -1,0 +1,4 @@
+num_leaves: 15
+learning_rate: 0.03
+min_child_samples: 100
+feature_fraction: 0.7
