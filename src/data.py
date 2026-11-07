@@ -8,7 +8,10 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+try:
+    from sklearn.preprocessing import StandardScaler
+except ImportError:
+    StandardScaler = Any
 
 try:
     import torch

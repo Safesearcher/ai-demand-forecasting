@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import argparse
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 try:
-    from .data import PipelineSpec
+    from .data import PipelineSpec, get_pipeline_spec
 except ImportError:
-    from data import PipelineSpec
+    from data import PipelineSpec, get_pipeline_spec
 
 
 def _canonical_frame(frame: pd.DataFrame, spec: PipelineSpec) -> pd.DataFrame:
@@ -120,3 +123,91 @@ def moving_average_28(
         spec,
         f"moving_average_{window}",
     )
+
+
+def run_baselines_for_pipeline(
+    pipeline: str,
+    data_dir: Path,
+    results_dir: Path,
+) -> list[Path]:
+    """Execute seasonal naive and moving average baselines and save prediction parquets."""
+    spec = get_pipeline_spec(pipeline)
+    clean_path = data_dir / spec.clean_filename
+    if not clean_path.exists():
+        raise FileNotFoundError(
+            f"Processed data file not found: {clean_path}. "
+            f"Run data cleaning first to generate {spec.clean_filename}."
+        )
+
+    df = pd.read_parquet(clean_path)
+    df = _canonical_frame(df, spec)
+    df = df.sort_values([*spec.series_id_cols, "Date"]).reset_index(drop=True)
+
+    max_date = df["Date"].max()
+    holdout_start = max_date - pd.Timedelta(days=spec.holdout_days - 1)
+
+    history = df[df["Date"] < holdout_start].copy()
+    forecast = df[df["Date"] >= holdout_start].copy()
+
+    results_dir.mkdir(parents=True, exist_ok=True)
+    saved_paths: list[Path] = []
+
+    # 1. Seasonal Naive (7-day lag)
+    sn7_preds = seasonal_naive(history, forecast, spec, season_length=7)
+    if spec.name == "rossmann" and "Open" in forecast.columns:
+        closed_mask = (forecast["Open"].to_numpy() == 0)
+        sn7_preds.loc[closed_mask, ["p10", "p50", "p90"]] = 0.0
+
+    sn7_path = results_dir / f"predictions_{pipeline.upper()}_seasonal_naive_7.parquet"
+    sn7_preds.to_parquet(sn7_path, index=False)
+    saved_paths.append(sn7_path)
+
+    # 2. Moving Average (28-day window)
+    ma28_preds = moving_average_28(history, forecast, spec, window=28)
+    if spec.name == "rossmann" and "Open" in forecast.columns:
+        closed_mask = (forecast["Open"].to_numpy() == 0)
+        ma28_preds.loc[closed_mask, ["p10", "p50", "p90"]] = 0.0
+
+    ma28_path = results_dir / f"predictions_{pipeline.upper()}_moving_average_28.parquet"
+    ma28_preds.to_parquet(ma28_path, index=False)
+    saved_paths.append(ma28_path)
+
+    return saved_paths
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run baseline forecasting models.")
+    parser.add_argument(
+        "--pipeline",
+        choices=("A", "B", "all"),
+        required=True,
+        help="Pipeline identifier: 'A' (Rossmann), 'B' (Store Item), or 'all'",
+    )
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=Path("data/processed"),
+        help="Directory containing clean processed parquet files",
+    )
+    parser.add_argument(
+        "--results-dir",
+        type=Path,
+        default=Path("results"),
+        help="Directory to save baseline predictions",
+    )
+    args = parser.parse_args()
+
+    root = Path(__file__).resolve().parents[1]
+    data_dir = root / args.data_dir if not args.data_dir.is_absolute() else args.data_dir
+    results_dir = root / args.results_dir if not args.results_dir.is_absolute() else args.results_dir
+
+    pipelines = ("A", "B") if args.pipeline == "all" else (args.pipeline,)
+    for pipe in pipelines:
+        print(f"Generating baseline predictions for Pipeline {pipe}...")
+        outputs = run_baselines_for_pipeline(pipe, data_dir, results_dir)
+        for output in outputs:
+            print(f"  Saved: {output.name}")
+
+
+if __name__ == "__main__":
+    main()
