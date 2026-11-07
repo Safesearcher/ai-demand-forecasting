@@ -276,12 +276,17 @@ def train_lgbm(
     errors = validation_frame[data.spec.target_col].to_numpy()[:, None] - validation_predictions
     taus = np.asarray((0.1, 0.5, 0.9))
     validation_loss = float(np.maximum(taus * errors, (taus - 1) * errors).mean())
+    train_loss = model.models[1].evals_result_["train"]["quantile"]
+    valid_loss = model.models[1].evals_result_["valid"]["quantile"]
     curves = pd.DataFrame(
-        [{"epoch": model.models[0].best_iteration_, "train_loss": np.nan,
-          "validation_loss": validation_loss}]
+        {
+            "epoch": list(range(1, len(train_loss) + 1)),
+            "train_loss": train_loss,
+            "validation_loss": valid_loss,
+        }
     )
     model.save(output_dir, pipeline)
-    return TrainingResult(model, curves, int(model.models[0].best_iteration_), validation_loss)
+    return TrainingResult(model, curves, int(model.models[1].best_iteration_), validation_loss)
 
 
 def _save_curve(curves: pd.DataFrame, results_dir: Path, pipeline: str, model_name: str) -> None:
@@ -325,6 +330,34 @@ def _save_holdout_predictions(
     return path
 
 
+def _save_validation_predictions(
+    result: TrainingResult,
+    data: PreparedData,
+    model_name: str,
+    pipeline: str,
+    results_dir: Path,
+) -> Path:
+    frame = data.validation
+    if model_name == "mlp":
+        loader = create_dataloader(frame, data, 4096, shuffle=False)
+        predictions = _predict_mlp(result.model, loader, next(result.model.parameters()).device)
+    else:
+        predictions = result.model.predict(_lgbm_features(data, frame))
+    predictions = np.expm1(predictions).clip(0, None)
+    if data.spec.name == "rossmann" and "Open" in frame.columns:
+        predictions[frame["Open"].to_numpy() == 0] = 0
+    output = frame[[*data.spec.series_id_cols, "Date", data.spec.target_col]].copy()
+    output = output.rename(columns={"Date": "date", data.spec.target_col: "actual"})
+    output[["p10", "p50", "p90"]] = predictions
+    output["model"] = model_name
+    results_dir.mkdir(parents=True, exist_ok=True)
+    path = results_dir / f"validation_predictions_{pipeline}_{model_name}.parquet"
+    output[["date", *data.spec.series_id_cols, "actual", "p10", "p50", "p90", "model"]].to_parquet(
+        path, index=False
+    )
+    return path
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train a Phase 3 forecasting model.")
     parser.add_argument("--pipeline", choices=("A", "B"), required=True)
@@ -351,10 +384,13 @@ def main() -> None:
     prediction_path = _save_holdout_predictions(
         result, data, args.model, args.pipeline, results_dir
     )
+    val_path = _save_validation_predictions(
+        result, data, args.model, args.pipeline, results_dir
+    )
     print(
         f"Completed {args.pipeline}/{args.model}: best validation loss "
         f"{result.best_validation_loss:.6f}; predictions={prediction_path}; "
-        f"elapsed={time.perf_counter() - started:.1f}s"
+        f"validation_predictions={val_path}; elapsed={time.perf_counter() - started:.1f}s"
     )
 
 

@@ -141,7 +141,8 @@ class LightGBMQuantileModel:
             model.fit(
                 x_train,
                 y_train,
-                eval_set=[(x_valid, y_valid)],
+                eval_set=[(x_train, y_train), (x_valid, y_valid)],
+                eval_names=["train", "valid"],
                 eval_metric="quantile",
                 callbacks=[
                     self._lgb.early_stopping(
