@@ -4,10 +4,11 @@
 
 This project builds a web application that learns from historical sales data, forecasts near-future demand with an uncertainty range (P10, P50, and P90), and converts the forecast into a reorder recommendation using safety stock calculated from validation error. The system supports the manager's decision; it does not place orders automatically and does not replace a POS or ERP system.
 
-### Deliverable 1 Submission Details
+### Deliverable Submission Details
 
 - **Track:** Track A (Application Development)
-- **Technical Report:** [Deliverable 1 Technical Report (LaTeX)](report/main.tex)
+- **Deliverable 1 Technical Report (LaTeX):** [Deliverable 1 Technical Report (LaTeX)](report/main.tex)
+- **Deliverable 2 Milestone:** Model Architecture (Phase 3) & Empirical Evaluation (Phase 4)
 
 ### Team Members
 
@@ -151,6 +152,12 @@ python src/train.py --pipeline A --model lgbm --horizon 7 --config configs/confi
 python src/train.py --pipeline B --model lgbm --horizon 7 --config configs/config.yaml
 ```
 
+Run baseline models (Seasonal Naive 7 & Moving Average 28):
+
+```bash
+python src/baselines.py --pipeline all
+```
+
 Run a short shape-and-loss smoke check before a full run:
 
 ```bash
@@ -168,18 +175,22 @@ Model weights download link: **TODO - add Google Drive or Hugging Face URL.**
 
 ## Phase 4: Evaluation
 
-Evaluate the available prediction artifacts for one pipeline without
-generating missing model outputs:
+Evaluate the available prediction artifacts for Pipeline A or Pipeline B:
 
 ```bash
+python src/evaluate.py --pipeline A
 python src/evaluate.py --pipeline B
-python src/evaluate.py --pipeline B --cv
 ```
 
 Evaluation writes metrics, chronological split summaries, subgroup error
 tables, and reports to `results/phase4/`. Publication-quality figures are
-written to `report/figures/phase4/`. Pipeline A and baseline models are
-evaluated automatically after their prediction artifacts are available.
+written to `report/figures/phase4/`.
+
+Generate the Git contribution table from commit history:
+
+```bash
+python scripts/contribution_table.py
+```
 
 Stockout-alert classification requires validation prediction files to choose
 the simulated-stock multiplier on validation only. The evaluator refuses to
@@ -200,6 +211,28 @@ choose that multiplier from the test set.
 ├── requirements.txt
 ├── .env.example
 ├── run_all.py
+├── configs/
+│   ├── config.yaml
+│   ├── best_A_mlp.yaml
+│   └── best_A_lgbm.yaml
+├── scripts/
+│   └── contribution_table.py
+├── src/
+│   ├── data.py
+│   ├── models.py
+│   ├── losses.py
+│   ├── baselines.py
+│   ├── train.py
+│   ├── tune.py
+│   ├── evaluate.py
+│   └── evaluation/
+│       ├── config.py
+│       ├── metrics.py
+│       ├── splits.py
+│       ├── stockout.py
+│       ├── classification.py
+│       ├── error_analysis.py
+│       └── figures.py
 ├── data_scripts/
 │   ├── 01_download_data.py
 │   ├── 02_clean_and_validate.py
@@ -226,17 +259,11 @@ choose that multiplier from the test set.
 │       └── store_item_standard_scaler.pkl
 ├── report/
 │   ├── main.tex
+│   ├── tables/
+│   │   └── contribution_table.tex
 │   └── figures/
-│       ├── rossmann_sales_distribution.png
-│       ├── rossmann_raw_correlation.png
-│       ├── rossmann_correlation_heatmap.png
-│       ├── rossmann_lag_correlation.png
-│       ├── store_item_sales_histogram.png
-│       ├── store_item_dow_profile.png
-│       ├── store_item_monthly_profile.png
-│       ├── store_item_seasonality.png
-│       ├── store_item_zero_summary.png
-│       └── time_based_split_diagram.png
+│       ├── phase4/
+│       └── ...
 └── phase1.tex
 ```
 
