@@ -5,14 +5,22 @@
 \toprule
 model & subgroup & best\_value & worst\_value & best\_wmape & worst\_wmape & wmape\_gap & best\_bias & worst\_bias & worst\_direction \\
 \midrule
-lgbm & day\_of\_week & 0 & 6 & 0.3795 & 0.5435 & 0.1639 & -14.7342 & -34.3990 & under \\
-lgbm & item\_volume\_tier & medium & high & 0.4665 & 0.4882 & 0.0217 & -23.7882 & -27.4069 & under \\
-lgbm & month & 12 & 11 & 0.3900 & 0.5275 & 0.1375 & -15.8475 & -32.3331 & under \\
-lgbm & store & 8 & 3 & 0.3941 & 0.5500 & 0.1559 & -13.0360 & -38.4077 & under \\
-mlp & day\_of\_week & 0 & 6 & 0.9886 & 0.9913 & 0.0027 & -42.8818 & -63.4415 & under \\
-mlp & item\_volume\_tier & low & high & 0.9904 & 0.9912 & 0.0008 & -52.8274 & -57.0753 & under \\
-mlp & month & 12 & 11 & 0.9884 & 0.9918 & 0.0033 & -44.3316 & -61.4132 & under \\
-mlp & store & 8 & 3 & 0.9865 & 0.9927 & 0.0061 & -37.5137 & -69.6705 & under \\
+lgbm & day\_of\_week & 3 & 1 & 0.4353 & 0.4677 & 0.0325 & 0.0027 & 1.4729 & over \\
+lgbm & item\_volume\_tier & low & high & 0.4448 & 0.4705 & 0.0257 & -1.5289 & 2.1130 & over \\
+lgbm & month & 10 & 12 & 0.4445 & 0.4647 & 0.0202 & -1.2634 & 1.1546 & over \\
+lgbm & store & 1 & 4 & 0.4280 & 0.4702 & 0.0422 & -1.5345 & 1.4615 & over \\
+mlp & day\_of\_week & 5 & 1 & 0.9961 & 0.9965 & 0.0004 & -104.9757 & -102.0845 & under \\
+mlp & item\_volume\_tier & high & low & 0.9963 & 0.9964 & 0.0002 & -101.4491 & -105.0812 & under \\
+mlp & month & 12 & 10 & 0.9962 & 0.9965 & 0.0003 & -102.4124 & -104.7991 & under \\
+mlp & store & 3 & 1 & 0.9960 & 0.9965 & 0.0005 & -103.9123 & -105.1304 & under \\
+moving\_average\_28 & day\_of\_week & 2 & 5 & 0.8169 & 0.8449 & 0.0280 & -64.7024 & -72.1838 & under \\
+moving\_average\_28 & item\_volume\_tier & low & high & 0.8253 & 0.8326 & 0.0073 & -70.1104 & -69.9728 & under \\
+moving\_average\_28 & month & 10 & 11 & 0.4776 & 1.0000 & 0.5224 & -0.4718 & -104.3000 & under \\
+moving\_average\_28 & store & 4 & 5 & 0.8132 & 0.8504 & 0.0371 & -68.4298 & -70.6166 & under \\
+seasonal\_naive\_7 & day\_of\_week & 2 & 6 & 0.9486 & 0.9716 & 0.0230 & -91.5367 & -96.5415 & under \\
+seasonal\_naive\_7 & item\_volume\_tier & medium & high & 0.9577 & 0.9712 & 0.0135 & -96.4993 & -95.3105 & under \\
+seasonal\_naive\_7 & month & 10 & 11 & 0.8858 & 1.0000 & 0.1142 & -78.7559 & -104.3000 & under \\
+seasonal\_naive\_7 & store & 4 & 2 & 0.9580 & 0.9691 & 0.0111 & -94.0578 & -95.5644 & under \\
 \bottomrule
 \end{tabular}
 \end{table}
