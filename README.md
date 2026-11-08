@@ -171,7 +171,7 @@ predictions to `results/`, and never writes source data. Tune with:
 python src/tune.py --pipeline A --model mlp --trials 15 --horizon 7 --config configs/config.yaml
 ```
 
-Model weights download link: **TODO - add Google Drive or Hugging Face URL.**
+Model weights download link: [Hugging Face Hub (`TahaImran1/ai-demand-forecasting-weights`)](https://huggingface.co/TahaImran1/ai-demand-forecasting-weights)
 
 ## Phase 4: Evaluation
 
