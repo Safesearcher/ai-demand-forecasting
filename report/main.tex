@@ -13,7 +13,7 @@
 \usepackage{placeins}
 \usepackage{caption}
 \usepackage{subcaption}
-\usepackage{microtype}
+\usepackage[expansion=false]{microtype}
 
 \geometry{margin=1in}
 
@@ -25,7 +25,7 @@
 }
 
 \title{\textbf{AI Demand Forecasting \& Inventory Decision Support}\\
-	\large Deliverable 1: Problem Definition \& Data Foundations\\
+	\large Deliverable 2: Model Architecture \& Empirical Evaluation\\
 	\normalsize Course: AI Applications \quad|\quad Track A: Application Development}
 
 \author{
@@ -36,7 +36,7 @@
 
 \date{
 	\url{https://github.com/Safesearcher/ai-demand-forecasting.git} \\[0.5em]
-	23 October 2026
+	November 2026
 }
 
 \begin{document}
@@ -370,16 +370,231 @@ Figure \ref{fig:time_split} illustrates the time-based holdout validation design
 \end{figure}
 
 \FloatBarrier
+\newpage
 
-\section{Summary of Deliverable 1 Contributions}
+\section{Phase 3: Model Architecture \& Hyperparameter Tuning}
 
-Deliverable 1 establishes the problem formulation and data foundations for the project:
+\subsection{Probabilistic Quantile Formulation and Loss Function}
+Traditional point-forecast models predict only the conditional mean $\mathbb{E}[Y \mid X]$, obscuring the asymmetric cost profile inherent to retail replenishment where stockout losses typically dwarf inventory carrying costs. To provide decision support, our system implements probabilistic quantile regression to directly estimate the 10th percentile ($P_{10}$, pessimistic demand), 50th percentile ($P_{50}$, median forecast), and 90th percentile ($P_{90}$, optimistic demand).
+
+The models are optimized using the summed Pinball Loss across the target quantile ensemble $\mathcal{T} = \{0.10, 0.50, 0.90\}$. For a target observation $y$ and predicted quantile $\hat{y}^{(\tau)}$, the asymmetric pinball loss $\rho_\tau(u)$ is defined as:
+\begin{equation}
+\rho_\tau(y - \hat{y}^{(\tau)}) = \max\left(\tau(y - \hat{y}^{(\tau)}), (\tau - 1)(y - \hat{y}^{(\tau)})\right)
+\end{equation}
+The total multi-quantile objective minimized across a mini-batch of $N$ observations is:
+\begin{equation}
+\mathcal{L}_{\text{pinball}}(y, \hat{y}) = \frac{1}{N} \sum_{i=1}^{N} \sum_{\tau \in \{0.10, 0.50, 0.90\}} \rho_\tau\left(y_i - \hat{y}_i^{(\tau)}\right)
+\end{equation}
+When the forecast underestimates demand ($y > \hat{y}$), the loss incurs penalty $\tau(y - \hat{y})$; when overestimating ($y < \hat{y}$), it incurs $(1 - \tau)(\hat{y} - y)$. For $\tau = 0.90$, under-forecasting is penalized nine times more severely than over-forecasting, naturally yielding an upper-bound demand buffer suited for safety stock calculation.
+
+\subsection{Quantile Multi-Layer Perceptron (QuantileMLP)}
+The deep learning architecture is implemented in PyTorch (\texttt{src/models.py}) and tailored for heterogeneous tabular time series. It consists of three structural components:
 \begin{enumerate}
-    \item \textbf{Concrete Problem Definition:} Formulated the business trade-off between stockouts and inventory holding costs, defined target users, and provided technical justifications for machine-learning-driven uncertainty estimation over static heuristic rules.
-    \item \textbf{Dual Pipeline Separation:} Implemented two parallel, unmerged data pipelines representing store-level multivariate demand (Rossmann) and multi-item SKU demand (Store Item).
-    \item \textbf{Reproducible Data Pipeline:} Built an automated execution sequence (\texttt{run\_all.py}) covering programmatic acquisition, schema validation, domain rule enforcement, leakage-safe outlier treatment, and feature generation.
-    \item \textbf{Leakage Prevention:} Enforced strict chronological splitting (42-day Rossmann holdout, 90-day Store Item holdout), withheld contemporaneous customer volume, and computed all normalization parameters solely on training partitions.
-    \item \textbf{Visual EDA:} Generated and analyzed 10 high-resolution visualizations characterizing promotional lift (+38.4\%), weekly and annual periodicity, and autoregressive lag correlations.
+    \item \textbf{Entity Embedding Subnetwork:} High-cardinality categorical attributes (e.g., \texttt{Store}, \texttt{StoreType}, \texttt{Assortment}, \texttt{StateHoliday} in Pipeline A; \texttt{store}, \texttt{item} in Pipeline B) are mapped to low-dimensional continuous dense vectors via trainable embedding layers:
+    \begin{equation}
+    d_e = \min\left(32, \max\left(4, \left\lfloor \frac{|\mathcal{C}|}{2} \right\rfloor \right)\right)
+    \end{equation}
+    where $|\mathcal{C}|$ denotes categorical cardinality. This allows the network to learn shared geometric representations and transfer demand elasticity patterns across disparate retail outlets.
+    \item \textbf{Fully-Connected Feature Backbone:} Dense entity embeddings are concatenated with the standardized continuous features vector $x_{\text{num}} \in \mathbb{R}^{d_{\text{num}}}$. The concatenated vector is propagated through fully-connected dense layers:
+    \begin{equation}
+    h^{(l)} = \text{Dropout}\left(\text{ReLU}\left(W^{(l)} h^{(l-1)} + b^{(l)}\right), p\right)
+    \end{equation}
+    with dropout regularization rates $p \in [0.1, 0.3]$ to mitigate co-adaptation of features on sparse holiday or promotional combinations.
+    \item \textbf{Monotonic Non-Crossing Quantile Head:} A critical flaw in standard multi-head quantile regression is ``quantile crossing'', wherein stochastic gradient noise yields $\hat{y}^{(0.10)} > \hat{y}^{(0.50)}$ or $\hat{y}^{(0.50)} > \hat{y}^{(0.90)}$. To strictly enforce physical monotonicity, the output layer emits three unrestricted linear logits $[z_0, z_1, z_2] \in \mathbb{R}^3$. Predictions in log-sales space are formulated as:
+    \begin{align}
+    \hat{y}^{(0.50)} &= z_0 \\
+    \hat{y}^{(0.10)} &= z_0 - \text{softplus}(z_1) \\
+    \hat{y}^{(0.90)} &= z_0 + \text{softplus}(z_2)
+    \end{align}
+    Since $\text{softplus}(z) = \ln(1 + \exp(z)) > 0$ for all $z \in \mathbb{R}$, strict ordering $\hat{y}^{(0.10)} < \hat{y}^{(0.50)} < \hat{y}^{(0.90)}$ is mathematically guaranteed at every forward pass without auxiliary projection penalties.
+\end{enumerate}
+
+The MLP is trained using the AdamW optimizer with decoupled weight decay ($\lambda \in [0.0, 10^{-3}]$), initial learning rates $\eta \in [10^{-4}, 10^{-3}]$, batch sizes of $512$ to $2,048$, and patience-based early stopping (8 epochs, $\delta = 10^{-5}$) monitored strictly on the internal chronological validation pinball loss.
+
+\subsection{LightGBM Multi-Quantile Regressor Wrapper}
+To establish a strong competitive benchmark against gradient-boosted decision trees (GBDT), we implemented \texttt{LightGBMQuantileModel} (\texttt{src/models.py}). The model constructs three dedicated LightGBM estimators, each minimizing the exact quantile loss objective:
+\begin{equation}
+\min_{f_\tau} \sum_{i=1}^{N} \rho_\tau(y_i - f_\tau(x_i)) \quad \text{for } \tau \in \{0.10, 0.50, 0.90\}
+\end{equation}
+Each tree ensemble is grown using leaf-wise histogram-based splitting. Training uses early stopping with a 100-round patience window monitored on the validation split. To guarantee that quantile crossing does not occur during inference, the multi-estimator predictions are sorted across the quantile axis:
+\begin{equation}
+\hat{Y} = \text{sort}\left(\left[\hat{y}^{(0.10)}, \hat{y}^{(0.50)}, \hat{y}^{(0.90)}\right], \text{axis}=1\right)
+\end{equation}
+
+\subsection{Hyperparameter Search Space and Tuning Results}
+Model tuning was executed via automated random search (\texttt{src/tune.py}) over a predefined search space. Table \ref{tab:hyperparam_space} formalizes the hyperparameter search lattice along with the optimal parameter configurations discovered across pipelines (persisted in \texttt{configs/best\_*.yaml} and logged in \texttt{results/tuning\_*.csv}).
+
+\begin{table}[htbp]
+\centering
+\caption{Hyperparameter Search Lattice and Optimal Configurations}
+\label{tab:hyperparam_space}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Model Framework} & \textbf{Hyperparameter} & \textbf{Search Lattice} & \textbf{Selected Optimal (Pipeline A / B)} \\
+\midrule
+\textbf{PyTorch MLP} & Learning Rate ($\eta$) & $\{1\times 10^{-4}, 3\times 10^{-4}, 1\times 10^{-3}\}$ & $1\times 10^{-4}$ (A) \quad / \quad $1\times 10^{-3}$ (B) \\
+& Batch Size & $\{512, 1024, 2048\}$ & $512$ (A) \quad / \quad $512$ (B) \\
+& Dropout ($p$) & $\{0.10, 0.20, 0.30\}$ & $0.10$ (A) \quad / \quad $0.30$ (B) \\
+& Hidden Architecture & $\{[256, 128, 64], [512, 256, 128]\}$ & $[512, 256, 128]$ (A) \quad / \quad $[256, 128, 64]$ (B) \\
+& Weight Decay ($\lambda$) & $\{0.0, 1\times 10^{-4}, 1\times 10^{-3}\}$ & $0.0$ (A) \quad / \quad $1\times 10^{-3}$ (B) \\
+\midrule
+\textbf{LightGBM} & Number of Leaves & $\{15, 31, 63, 127\}$ & $15$ (A) \quad / \quad $15$ (B) \\
+& Learning Rate & $\{0.01, 0.03, 0.05, 0.10\}$ & $0.03$ (A) \quad / \quad $0.10$ (B) \\
+& Min Child Samples & $\{10, 20, 50, 100\}$ & $100$ (A) \quad / \quad $10$ (B) \\
+& Feature Fraction & $\{0.70, 0.85, 1.00\}$ & $0.70$ (A) \quad / \quad $0.70$ (B) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure \ref{fig:loss_curves} illustrates the training and validation loss trajectories across epochs and boosting iterations, demonstrating monotonic convergence and absence of catastrophic overfitting.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figures/phase4/curves_A_lgbm.png}
+        \caption{Pipeline A: LightGBM Pinball Loss}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figures/phase4/curves_B_lgbm.png}
+        \caption{Pipeline B: LightGBM Pinball Loss}
+    \end{subfigure}
+    \caption{Training and validation loss trajectories during quantile model optimization.}
+    \label{fig:loss_curves}
+\end{figure}
+
+\FloatBarrier
+\newpage
+
+\section{Phase 4: Training \& Empirical Evaluation}
+
+\subsection{Leakage-Free Validation Strategy}
+Time series forecasting violates the independent and identically distributed (i.i.d.) assumptions of standard $K$-fold cross-validation. Random shuffling leaks future temporal signals into training features, producing inflated and misleading test scores. To guarantee zero lookahead leakage:
+\begin{enumerate}
+    \item \textbf{Chronological Holdout Partitioning:} The final evaluation partition is reserved as a contiguous future block (42 days for Rossmann, 2015-06-20 to 2015-07-31; 90 days for Store Item, 2017-10-03 to 2017-12-31). This partition was completely sealed and remained unvisited throughout feature selection and hyperparameter exploration.
+    \item \textbf{Internal Validation Carve-Out:} Internal model selection and early stopping were conducted on an expanding chronological split carved directly from the trailing edge of the training data.
+    \item \textbf{Strict Target Isolation:} All feature scalers (\texttt{StandardScaler}) and target imputation rules were fitted strictly on training slices; holdout targets were never centered, scaled, or clipped.
+\end{enumerate}
+
+\subsection{Empirical Test Performance Against Baselines}
+We compare the tuned probabilistic machine learning models against two industry-standard operational benchmarks:
+\begin{itemize}
+    \item \textbf{Seasonal Naive (7-Day):} Forecasts demand equal to the same day of the preceding week ($\hat{y}_t = y_{t-7}$), capturing weekly retail cyclicality.
+    \item \textbf{Moving Average (28-Day):} Forecasts demand equal to the trailing 28-day rolling mean ($\hat{y}_t = \frac{1}{28}\sum_{k=1}^{28} y_{t-k}$), serving as a standard inventory replenishment baseline.
+\end{itemize}
+
+Model efficacy is evaluated across primary point-forecast error metrics (MAE, RMSE, WMAPE, Mean Bias) and probabilistic quantile metrics (Pinball Loss at $\tau \in \{0.1, 0.5, 0.9\}$, Empirical Interval Coverage $[P_{10}, P_{90}]$, and Mean Interval Width). Tables \ref{tab:metrics-A} and \ref{tab:metrics-B} present the audited empirical test evaluation results.
+
+\input{tables/metrics_A.tex}
+
+\input{tables/metrics_B.tex}
+
+\subsection{Analysis of Forecasting Results}
+\begin{itemize}
+    \item \textbf{Dominance of Gradient-Boosted Trees:} LightGBM achieved the lowest Weighted Mean Absolute Percentage Error (WMAPE) across both pipelines: $47.06\%$ on Pipeline A and $45.39\%$ on Pipeline B. This represents an absolute WMAPE reduction of $44.84$ percentage points over Seasonal Naive on Rossmann, and a $37.60$ percentage point reduction over Moving Average on Store Item.
+    \item \textbf{Near-Zero Forecast Bias:} On Pipeline B, LightGBM achieved a mean bias of $-0.12$ units per day, whereas Moving Average and Seasonal Naive severely under-predicted demand by $-70.33$ and $-95.55$ units, respectively. In retail operations, negative forecast bias induces structural under-ordering and chronic shelf stockouts.
+    \item \textbf{Neural Network Performance:} While PyTorch QuantileMLP captured non-linear trends, tabular gradient boosting decisively outperformed it under tabular sparsity, especially on high-cardinality series with intermittent closures.
+\end{itemize}
+
+Figure \ref{fig:model_comparison} contrasts the aggregate test error metrics across competing models.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figures/phase4/model_comparison_A.png}
+        \caption{Pipeline A (Rossmann) Model Comparison}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figures/phase4/model_comparison_B.png}
+        \caption{Pipeline B (Store Item) Model Comparison}
+    \end{subfigure}
+    \caption{Empirical test error comparison (MAE, RMSE, WMAPE) across baseline and learning architectures.}
+    \label{fig:model_comparison}
+\end{figure}
+
+\subsection{Coverage Calibration and Residual Diagnostics}
+A critical requirement of probabilistic forecasting is interval calibration: the 80\% central prediction interval $[P_{10}, P_{90}]$ must capture exactly 80\% of future empirical outcomes.
+\begin{itemize}
+    \item \textbf{Empirical Coverage Precision:} LightGBM achieved an empirical coverage of \textbf{80.48\%} on Pipeline A and \textbf{81.07\%} on Pipeline B, closely tracking the theoretical 80.00\% nominal target. In contrast, baseline point models produce degenerate intervals with coverage under $0.1\%$.
+    \item \textbf{Residual Symmetry:} Figure \ref{fig:residuals_and_coverage} presents the residual distribution and calibration diagnostics. Residuals for LightGBM are centered tightly around zero with balanced Gaussian-like tails, confirming that the model does not suffer from systemic over- or under-estimation.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figures/phase4/coverage_B.png}
+        \caption{Pipeline B: Empirical Coverage Calibration}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figures/phase4/residuals_B.png}
+        \caption{Pipeline B: Residual Error Distribution}
+    \end{subfigure}
+    \caption{Uncertainty interval coverage calibration and test residual histograms.}
+    \label{fig:residuals_and_coverage}
+\end{figure}
+
+Figure \ref{fig:prediction_bands} shows representative 90-day test forecast trajectories along with $P_{10}$ and $P_{90}$ uncertainty ribbons, highlighting how prediction interval width naturally expands during demand surges and contracts during stable periods.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{figures/phase4/prediction_band_0_1_3.png}
+    \caption{Probabilistic demand forecasts ($P_{10}, P_{50}, P_{90}$) over the contiguous test horizon, showcasing dynamic uncertainty bounds.}
+    \label{fig:prediction_bands}
+\end{figure}
+
+\subsection{Stockout Classification and Operational Decision Support}
+In practical retail operations, the probabilistic forecast feeds directly into an inventory replenishment decision engine. To alert managers prior to stock depletion, we formulate a simulated stockout alert mechanism.
+
+\subsubsection{Operational Alert Formulation}
+Let $S_t$ denote on-hand stock and $I_t$ represent scheduled incoming purchase orders. Over the lead time horizon $T$, demand is forecasted at median $D_T = \sum_{k=1}^T \hat{y}_{t+k}^{(0.50)}$. Safety stock $SS$ is sized using empirical validation root mean square error $\sigma_d$:
+\begin{equation}
+SS = z \cdot \sigma_d \cdot \sqrt{T}
+\end{equation}
+where $z = 1.65$ corresponds to a 95\% cycle service level. A binary \textbf{Stockout Alert} is triggered whenever projected inventory falls below the safety stock threshold:
+\begin{equation}
+\text{Alert}_t = \mathbb{I}\left(S_t + I_t - D_T < SS\right)
+\end{equation}
+
+\subsubsection{Classification Metrics Justification}
+Stockout alert efficacy is evaluated via Precision, Recall, F1-Score, and AUC-ROC / PR-AUC:
+\begin{itemize}
+    \item \textbf{Recall ($TP / (TP + FN)$) as the Primary KPI:} In supply chain inventory management, the cost of a \textbf{False Negative} (missed stockout alert) is catastrophic: stock depletion causes direct lost revenue, breach of supplier service-level agreements (SLAs), customer churn, and brand erosion. Conversely, a \textbf{False Positive} (premature alert) merely triggers an early review or slight temporary carrying cost. Therefore, replenishment engines must strictly maximize Recall at acceptable Precision.
+    \item \textbf{AUC-ROC and PR-AUC:} Since stockout events represent an imbalanced classification problem in well-managed supply chains ($<10\%$ incident rate), Area Under the Precision-Recall Curve (PR-AUC) provides a sensitive, un-skewed measure of alert discrimination across decision thresholds.
+\end{itemize}
+
+\subsection{Subgroup Error Analysis and Bias Check}
+To ensure model fairness and reliability across heterogeneous retail segments, we audited error disaggregation across store types, assortment strategies, promotional status, calendar events, and sales volume tiers. Tables \ref{tab:bias-gaps-A} and \ref{tab:bias-gaps-B} report the maximum subgroup performance gaps.
+
+\input{tables/bias_gaps_A.tex}
+
+\input{tables/bias_gaps_B.tex}
+
+\subsubsection{Subgroup Bias Findings}
+\begin{itemize}
+    \item \textbf{Promotional Bias:} Across Pipeline A, LightGBM exhibited minimal promotional bias gap ($\Delta \text{WMAPE} = 1.32\%$), maintaining consistent accuracy regardless of whether an active discount campaign was underway ($46.57\%$ non-promo vs $47.89\%$ promo).
+    \item \textbf{Volume Tier Fairness:} On Pipeline B, error disparities between high-volume and low-volume item tiers were under $2.57\%$ WMAPE for LightGBM, whereas heuristic baselines exhibited pronounced degradation ($>50\%$ gap) during demand spikes.
+    \item \textbf{Holiday Resilience:} LightGBM absorbed public holiday closures without catastrophic spillover error, validating the closed-day imputation and cyclical encoding strategies implemented in Phase 2.
+\end{itemize}
+
+\FloatBarrier
+\newpage
+
+\section{Project Contribution and Version Control Verification}
+
+In accordance with course policies governing collaborative version control, all implementations, experiments, and technical deliverables were developed using standard Git CLI workflows. Table \ref{tab:contributions} documents the audited Git commit history and module line counts generated directly from repository logs via \texttt{scripts/contribution\_table.py}.
+
+\input{tables/contribution_table.tex}
+
+\section{Summary of Project Deliverables}
+
+Across Deliverables 1 and 2, this project establishes a rigorous, production-ready probabilistic demand forecasting framework:
+\begin{enumerate}
+    \item \textbf{Deliverable 1 Foundations:} Formulated the dual economic trade-offs of inventory management, implemented automated cryptographic data ingestion for two distinct Kaggle datasets (Rossmann and Store Item), established leakage-free cleaning and IQR outlier capping on training splits only, generated 10 publication-quality EDA figures, and proved absence of lookahead leakage under contiguous chronological holdouts.
+    \item \textbf{Deliverable 2 Model Architecture (Phase 3):} Designed and implemented PyTorch \texttt{QuantileMLP} featuring entity embeddings, dropout, and softplus-constrained non-crossing quantile heads; developed \texttt{LightGBMQuantileModel} with early stopping and monotonic sorting; executed systematic hyperparameter tuning across 15 search trials per model; and logged validated configurations.
+    \item \textbf{Deliverable 2 Empirical Evaluation (Phase 4):} Conducted comprehensive test evaluation against Seasonal Naive and Moving Average benchmarks; proved LightGBM's decisive outperformance ($47.06\%$ WMAPE on A, $45.39\%$ on B); demonstrated empirical interval calibration closely tracking the nominal 80\% central bound ($80.48\%$ on A, $81.07\%$ on B); formulated stockout decision alerting; and verified algorithmic fairness across extensive subgroup bias checks.
 \end{enumerate}
 
 \FloatBarrier

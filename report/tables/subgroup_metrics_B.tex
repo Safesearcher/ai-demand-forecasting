@@ -1,0 +1,82 @@
+\begin{table}
+\caption{B subgroup forecast errors}
+\label{tab:subgroup-errors-B}
+\begin{tabular}{llrrrrrrl}
+\toprule
+subgroup & value & rows & wmape & bias & coverage & stockout\_alert\_recall & coverage\_flag & model \\
+\midrule
+store & 1 & 900 & 0.4280 & -1.5345 & 0.8256 & NaN & False & lgbm \\
+store & 2 & 900 & 0.4519 & -0.6606 & 0.8167 & NaN & False & lgbm \\
+store & 3 & 900 & 0.4533 & -0.3965 & 0.8078 & NaN & False & lgbm \\
+store & 4 & 900 & 0.4702 & 1.4615 & 0.8056 & NaN & False & lgbm \\
+store & 5 & 900 & 0.4668 & 0.5093 & 0.7978 & NaN & False & lgbm \\
+item\_volume\_tier & high & 1530 & 0.4705 & 2.1130 & 0.7993 & NaN & False & lgbm \\
+item\_volume\_tier & low & 1530 & 0.4448 & -1.5289 & 0.8052 & NaN & False & lgbm \\
+item\_volume\_tier & medium & 1440 & 0.4466 & -1.0087 & 0.8285 & NaN & False & lgbm \\
+day\_of\_week & 0 & 650 & 0.4616 & -0.7521 & 0.8092 & NaN & False & lgbm \\
+day\_of\_week & 1 & 650 & 0.4677 & 1.4729 & 0.7938 & NaN & False & lgbm \\
+day\_of\_week & 2 & 600 & 0.4617 & 2.6586 & 0.8217 & NaN & False & lgbm \\
+day\_of\_week & 3 & 650 & 0.4353 & 0.0027 & 0.8200 & NaN & False & lgbm \\
+day\_of\_week & 4 & 650 & 0.4358 & -2.1698 & 0.8215 & NaN & False & lgbm \\
+day\_of\_week & 5 & 650 & 0.4623 & -1.3356 & 0.7908 & NaN & False & lgbm \\
+day\_of\_week & 6 & 650 & 0.4543 & -0.5319 & 0.8185 & NaN & False & lgbm \\
+month & 10 & 1450 & 0.4445 & -1.2634 & 0.8172 & NaN & False & lgbm \\
+month & 11 & 1500 & 0.4522 & -0.3443 & 0.8100 & NaN & False & lgbm \\
+month & 12 & 1550 & 0.4647 & 1.1546 & 0.8052 & NaN & False & lgbm \\
+store & 1 & 900 & 0.9965 & -105.1304 & 0.0000 & NaN & True & mlp \\
+store & 2 & 900 & 0.9965 & -104.2455 & 0.0000 & NaN & True & mlp \\
+store & 3 & 900 & 0.9960 & -103.9123 & 0.0000 & NaN & True & mlp \\
+store & 4 & 900 & 0.9965 & -102.0834 & 0.0000 & NaN & True & mlp \\
+store & 5 & 900 & 0.9963 & -103.0489 & 0.0000 & NaN & True & mlp \\
+item\_volume\_tier & high & 1530 & 0.9963 & -101.4491 & 0.0000 & NaN & True & mlp \\
+item\_volume\_tier & low & 1530 & 0.9964 & -105.0812 & 0.0000 & NaN & True & mlp \\
+item\_volume\_tier & medium & 1440 & 0.9964 & -104.5743 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 0 & 650 & 0.9964 & -104.3269 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 1 & 650 & 0.9965 & -102.0845 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 2 & 600 & 0.9964 & -100.6703 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 3 & 650 & 0.9965 & -103.5671 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 4 & 650 & 0.9965 & -105.7546 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 5 & 650 & 0.9961 & -104.9757 & 0.0000 & NaN & True & mlp \\
+day\_of\_week & 6 & 650 & 0.9962 & -104.1777 & 0.0000 & NaN & True & mlp \\
+month & 10 & 1450 & 0.9965 & -104.7991 & 0.0000 & NaN & True & mlp \\
+month & 11 & 1500 & 0.9964 & -103.9203 & 0.0000 & NaN & True & mlp \\
+month & 12 & 1550 & 0.9962 & -102.4124 & 0.0000 & NaN & True & mlp \\
+store & 1 & 900 & 0.8240 & -72.2796 & 0.0000 & NaN & True & moving\_average\_28 \\
+store & 2 & 900 & 0.8384 & -69.9523 & 0.0011 & NaN & True & moving\_average\_28 \\
+store & 3 & 900 & 0.8232 & -70.3596 & 0.0000 & NaN & True & moving\_average\_28 \\
+store & 4 & 900 & 0.8132 & -68.4298 & 0.0011 & NaN & True & moving\_average\_28 \\
+store & 5 & 900 & 0.8504 & -70.6166 & 0.0000 & NaN & True & moving\_average\_28 \\
+item\_volume\_tier & high & 1530 & 0.8326 & -69.9728 & 0.0007 & NaN & True & moving\_average\_28 \\
+item\_volume\_tier & low & 1530 & 0.8253 & -70.1104 & 0.0000 & NaN & True & moving\_average\_28 \\
+item\_volume\_tier & medium & 1440 & 0.8318 & -70.9354 & 0.0007 & NaN & True & moving\_average\_28 \\
+day\_of\_week & 0 & 650 & 0.8286 & -71.1464 & 0.0000 & NaN & True & moving\_average\_28 \\
+day\_of\_week & 1 & 650 & 0.8254 & -68.7780 & 0.0000 & NaN & True & moving\_average\_28 \\
+day\_of\_week & 2 & 600 & 0.8169 & -64.7024 & 0.0000 & NaN & True & moving\_average\_28 \\
+day\_of\_week & 3 & 650 & 0.8333 & -70.8532 & 0.0000 & NaN & True & moving\_average\_28 \\
+day\_of\_week & 4 & 650 & 0.8208 & -73.0147 & 0.0015 & NaN & True & moving\_average\_28 \\
+day\_of\_week & 5 & 650 & 0.8449 & -72.1838 & 0.0015 & NaN & True & moving\_average\_28 \\
+day\_of\_week & 6 & 650 & 0.8379 & -71.1818 & 0.0000 & NaN & True & moving\_average\_28 \\
+month & 10 & 1450 & 0.4776 & -0.4718 & 0.0014 & NaN & True & moving\_average\_28 \\
+month & 11 & 1500 & 1.0000 & -104.3000 & 0.0000 & NaN & True & moving\_average\_28 \\
+month & 12 & 1550 & 1.0000 & -102.8000 & 0.0000 & NaN & True & moving\_average\_28 \\
+store & 1 & 900 & 0.9657 & -97.6256 & 0.0022 & NaN & True & seasonal\_naive\_7 \\
+store & 2 & 900 & 0.9691 & -95.5644 & 0.0011 & NaN & True & seasonal\_naive\_7 \\
+store & 3 & 900 & 0.9581 & -95.6456 & 0.0011 & NaN & True & seasonal\_naive\_7 \\
+store & 4 & 900 & 0.9580 & -94.0578 & 0.0000 & NaN & True & seasonal\_naive\_7 \\
+store & 5 & 900 & 0.9630 & -94.8689 & 0.0000 & NaN & True & seasonal\_naive\_7 \\
+item\_volume\_tier & high & 1530 & 0.9712 & -95.3105 & 0.0000 & NaN & True & seasonal\_naive\_7 \\
+item\_volume\_tier & low & 1530 & 0.9593 & -94.9033 & 0.0020 & NaN & True & seasonal\_naive\_7 \\
+item\_volume\_tier & medium & 1440 & 0.9577 & -96.4993 & 0.0007 & NaN & True & seasonal\_naive\_7 \\
+day\_of\_week & 0 & 650 & 0.9617 & -96.3108 & 0.0015 & NaN & True & seasonal\_naive\_7 \\
+day\_of\_week & 1 & 650 & 0.9552 & -93.4200 & 0.0015 & NaN & True & seasonal\_naive\_7 \\
+day\_of\_week & 2 & 600 & 0.9486 & -91.5367 & 0.0000 & NaN & True & seasonal\_naive\_7 \\
+day\_of\_week & 3 & 650 & 0.9619 & -95.6262 & 0.0000 & NaN & True & seasonal\_naive\_7 \\
+day\_of\_week & 4 & 650 & 0.9691 & -97.6415 & 0.0015 & NaN & True & seasonal\_naive\_7 \\
+day\_of\_week & 5 & 650 & 0.9696 & -97.4815 & 0.0000 & NaN & True & seasonal\_naive\_7 \\
+day\_of\_week & 6 & 650 & 0.9716 & -96.5415 & 0.0015 & NaN & True & seasonal\_naive\_7 \\
+month & 10 & 1450 & 0.8858 & -78.7559 & 0.0028 & NaN & True & seasonal\_naive\_7 \\
+month & 11 & 1500 & 1.0000 & -104.3000 & 0.0000 & NaN & True & seasonal\_naive\_7 \\
+month & 12 & 1550 & 1.0000 & -102.8000 & 0.0000 & NaN & True & seasonal\_naive\_7 \\
+\bottomrule
+\end{tabular}
+\end{table}
