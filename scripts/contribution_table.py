@@ -21,7 +21,19 @@ MODULE_PREFIXES = (
     ("src/baselines.py", "baselines.py"),
     ("src/train.py", "train.py"),
     ("src/tune.py", "tune.py"),
+    ("configs/", "configs"),
+    ("report/", "report"),
+    ("results/", "results"),
+    ("data_scripts/", "data_scripts"),
+    ("README.md", "documentation"),
 )
+
+DEFAULT_ALIASES = {
+    "fahdbusiness125@gmail.com": "Rai Fahd Sultan",
+    "raifahd": "Rai Fahd Sultan",
+    "TahaImran1": "Taha Imran",
+    "tahaimran561177@gmail.com": "Taha Imran",
+}
 
 
 def map_file_to_module(file_path: str) -> str:
@@ -45,9 +57,6 @@ def collect_git_contributions(
         "log",
         "--numstat",
         "--format=COMMIT%x09%H%x09%an%x09%ae",
-        "--",
-        "src",
-        "scripts",
     ]
     completed = subprocess.run(
         command,
@@ -55,7 +64,7 @@ def collect_git_contributions(
         capture_output=True,
         text=True,
     )
-    aliases = author_aliases or {}
+    aliases = {**DEFAULT_ALIASES, **(author_aliases or {})}
     rows: list[dict[str, Any]] = []
     current: dict[str, str] | None = None
     for line in completed.stdout.splitlines():
@@ -104,6 +113,7 @@ def write_contribution_table(contributions: pd.DataFrame, output_path: Path) -> 
         caption="Project contribution by author and module",
         label="tab:contributions",
     )
+    table = table.replace("\\begin{table}\n", "\\begin{table}[htbp]\n\\centering\n")
     output_path.write_text(table, encoding="utf-8")
 
 
