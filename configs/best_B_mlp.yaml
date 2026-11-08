@@ -1,0 +1,8 @@
+learning_rate: 0.001
+batch_size: 512
+dropout: 0.3
+hidden_sizes:
+- 256
+- 128
+- 64
+weight_decay: 0.001
