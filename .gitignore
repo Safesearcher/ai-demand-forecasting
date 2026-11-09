@@ -21,6 +21,9 @@ data/processed/*
 
 # ─── Data and model file extensions ──────────────────────────────
 *.csv
+!results/tuning_*.csv
+!results/phase4/*.csv
+!results/curves_*.csv
 *.zip
 *.parquet
 *.sqlite

@@ -8,7 +8,18 @@ from typing import Any
 
 import pandas as pd
 
-from evaluation.classification import save_classification_latex
+from evaluation.classification import (
+    evaluate_stockout_alerts,
+    plot_confusion_matrices,
+    plot_precision_recall_curves,
+    plot_roc_curves,
+    save_classification_latex,
+)
+from evaluation.stockout import (
+    apply_stockout_labels,
+    choose_stock_multiplier,
+    compute_origin_known_stock,
+)
 from evaluation.config import (
     EvaluationSpec,
     canonicalize_data_columns,
@@ -202,6 +213,35 @@ def evaluate_pipeline(
             "Stockout classification skipped: validation prediction artifacts are "
             "required to choose multiplier k; test data was not used."
         )
+    else:
+        validation_frames = {
+            path.stem.replace(f"validation_predictions_{spec.pipeline}_", ""): pd.read_parquet(path)
+            for path in validation_paths
+        }
+        k = choose_stock_multiplier(
+            validation_frames,
+            splits.validation,
+            spec,
+            horizon=7,
+            history_sales=raw,
+        )
+        print(f"Pipeline {spec.pipeline}: chosen stockout multiplier k = {k:.3f}")
+        labeled_by_model: dict[str, pd.DataFrame] = {}
+        for model_name, test_frame in frames.items():
+            test_basis = compute_origin_known_stock(raw, test_frame, spec, horizon=7)
+            labeled_by_model[model_name] = apply_stockout_labels(test_frame, test_basis, k)
+        
+        classification_metrics = evaluate_stockout_alerts(labeled_by_model, spec.pipeline)
+        classification_metrics.to_csv(output_dir / f"classification_{spec.pipeline}.csv", index=False)
+        save_classification_latex(
+            classification_metrics,
+            output_dir / f"classification_{spec.pipeline}.tex",
+            f"{spec.pipeline} stockout classification metrics",
+            f"tab:classification-{spec.pipeline}",
+        )
+        plot_roc_curves(labeled_by_model, figure_dir / f"roc_{spec.pipeline}.png")
+        plot_precision_recall_curves(labeled_by_model, figure_dir / f"pr_curve_{spec.pipeline}.png")
+        plot_confusion_matrices(labeled_by_model, figure_dir / f"confusion_{spec.pipeline}.png")
     if run_cv:
         print(
             "CV requested, but fold predictions are not available. "

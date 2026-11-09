@@ -1,0 +1,14 @@
+\begin{table}
+\caption{B stockout classification metrics}
+\label{tab:classification-B}
+\begin{tabular}{llrrrrrrrrrr}
+\toprule
+pipeline & model & precision & recall & f1 & auc\_roc & pr\_auc & true\_negative & false\_positive & false\_negative & true\_positive & positive\_rate \\
+\midrule
+B & lgbm & 0.1917 & 0.9206 & 0.3173 & 0.6942 & 0.2839 & 1117 & 2690 & 55 & 638 & 0.1540 \\
+B & mlp & 0.1538 & 0.9986 & 0.2666 & 0.5654 & 0.1864 & 0 & 3807 & 1 & 692 & 0.1540 \\
+B & moving\_average\_28 & 0.0769 & 0.0015 & 0.0029 & 0.4965 & 0.1587 & 3807 & 12 & 680 & 1 & 0.1513 \\
+B & seasonal\_naive\_7 & 0.2157 & 0.0162 & 0.0301 & 0.5020 & 0.1561 & 3779 & 40 & 670 & 11 & 0.1513 \\
+\bottomrule
+\end{tabular}
+\end{table}

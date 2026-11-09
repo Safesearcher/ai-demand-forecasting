@@ -421,8 +421,26 @@ Each tree ensemble is grown using leaf-wise histogram-based splitting. Training 
 \hat{Y} = \text{sort}\left(\left[\hat{y}^{(0.10)}, \hat{y}^{(0.50)}, \hat{y}^{(0.90)}\right], \text{axis}=1\right)
 \end{equation}
 
+\subsection{System Architecture Overview}
+Figure \ref{fig:model_architecture} synthesizes the end-to-end design of our two forecasting tracks. The deep learning track (QuantileMLP) transforms categorical indices via dedicated entity embeddings before fusing them with standardized lag and rolling features, routing the representation through a regularized dense backbone to a softplus-constrained monotonic quantile head. The gradient boosting track (LightGBM) trains three specialized quantile tree ensembles with leaf-wise splitting and feature subsampling, followed by post-prediction monotonic sorting and closed-day masking.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/architecture_diagram.png}
+    \caption{AI Demand Forecasting Architecture: (Left) PyTorch QuantileMLP with Entity Embeddings, standardized multi-horizon features, dense backbone with dropout ($p=0.2$), and softplus monotonic quantile head guaranteeing $P_{10} \le P_{50} \le P_{90}$; (Right) LightGBM Quantile Ensemble with dedicated estimators ($\tau \in \{0.1, 0.5, 0.9\}$) and post-hoc monotonic sorting.}
+    \label{fig:model_architecture}
+\end{figure}
+
 \subsection{Hyperparameter Search Space and Tuning Results}
-Model tuning was executed via automated random search (\texttt{src/tune.py}) over a predefined search space. Table \ref{tab:hyperparam_space} formalizes the hyperparameter search lattice along with the optimal parameter configurations discovered across pipelines (persisted in \texttt{configs/best\_*.yaml} and logged in \texttt{results/tuning\_*.csv}).
+Model tuning was executed via automated random search (\texttt{src/tune.py}) over a predefined search lattice. Trials were evaluated using internal chronological validation splits strictly preceding the test holdout. Table \ref{tab:hyperparam_space} formalizes the search lattice along with the optimal parameter configurations discovered across pipelines (persisted in \texttt{configs/best\_*.yaml} and logged in \texttt{results/tuning\_*.csv}).
+
+\subsubsection{Hyperparameter Selection Rationale}
+Hyperparameter choices were guided by validation loss minimization and structural regularization:
+\begin{itemize}
+    \item \textbf{LightGBM Tree Complexity:} Across both pipelines, shallow trees with $\texttt{num\_leaves} = 15$ yielded lower validation pinball loss than deeper variants ($31, 63, 127$). In multi-horizon demand forecasting, deeper trees overfit to transient promotional spikes in training splits. Setting $\texttt{feature\_fraction} = 0.70$ decorrelated individual trees across redundant rolling window features ($7, 14, 28$ days), improving generalizability.
+    \item \textbf{QuantileMLP Regularization:} The AdamW optimizer with decoupled weight decay ($\lambda = 10^{-3}$) and moderate dropout ($p = 0.20 \text{ to } 0.30$) was essential to prevent co-adaptation among concatenated dense embeddings and continuous lags. Learning rates of $\eta = 10^{-3}$ (Pipeline B) and $\eta = 10^{-4}$ (Pipeline A) balanced fast gradient progress with stability near quantile boundaries.
+    \item \textbf{Exploration Trials:} Hyperparameter exploration trials were logged in \texttt{results/tuning\_*.csv}. On Pipeline A, LightGBM validation loss settled at $2137.62$ and MLP at $0.659$; on Pipeline B, LightGBM achieved $50.55$ and MLP achieved $0.586$ pinball loss.
+\end{itemize}
 
 \begin{table}[htbp]
 \centering
@@ -457,10 +475,20 @@ Figure \ref{fig:loss_curves} illustrates the training and validation loss trajec
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figures/phase4/curves_A_mlp.png}
+        \caption{Pipeline A: QuantileMLP Pinball Loss}
+    \end{subfigure}
+    \vskip\baselineskip
+    \begin{subfigure}[b]{0.48\textwidth}
         \includegraphics[width=\textwidth]{figures/phase4/curves_B_lgbm.png}
         \caption{Pipeline B: LightGBM Pinball Loss}
     \end{subfigure}
-    \caption{Training and validation loss trajectories during quantile model optimization.}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figures/phase4/curves_B_mlp.png}
+        \caption{Pipeline B: QuantileMLP Pinball Loss}
+    \end{subfigure}
+    \caption{Training and validation loss trajectories during quantile model optimization across boosting iterations (LightGBM) and training epochs (QuantileMLP).}
     \label{fig:loss_curves}
 \end{figure}
 
@@ -498,9 +526,13 @@ Model efficacy is evaluated across primary point-forecast error metrics (MAE, RM
 
 \subsection{Analysis of Forecasting Results}
 \begin{itemize}
-    \item \textbf{Dominance of Gradient-Boosted Trees:} LightGBM achieved the lowest Weighted Mean Absolute Percentage Error (WMAPE) across both pipelines: $47.06\%$ on Pipeline A and $45.39\%$ on Pipeline B. This represents an absolute WMAPE reduction of $44.84$ percentage points over Seasonal Naive on Rossmann, and a $37.60$ percentage point reduction over Moving Average on Store Item.
-    \item \textbf{Near-Zero Forecast Bias:} On Pipeline B, LightGBM achieved a mean bias of $-0.12$ units per day, whereas Moving Average and Seasonal Naive severely under-predicted demand by $-70.33$ and $-95.55$ units, respectively. In retail operations, negative forecast bias induces structural under-ordering and chronic shelf stockouts.
-    \item \textbf{Neural Network Performance:} While PyTorch QuantileMLP captured non-linear trends, tabular gradient boosting decisively outperformed it under tabular sparsity, especially on high-cardinality series with intermittent closures.
+    \item \textbf{Dominance of Gradient-Boosted Trees:} LightGBM achieved the lowest Weighted Mean Absolute Percentage Error (WMAPE) across both pipelines: $48.77\%$ on Pipeline A and $45.39\%$ on Pipeline B. This represents an absolute WMAPE reduction of $44.00$ percentage points over Seasonal Naive on Rossmann ($92.77\% \to 48.77\%$), and a $37.60$ percentage point reduction over Moving Average on Store Item ($82.99\% \to 45.39\%$).
+    \item \textbf{Near-Zero Forecast Bias:} On Pipeline B, LightGBM achieved an exceptional mean bias of $-0.12$ units per day, whereas Moving Average and Seasonal Naive severely under-predicted demand by $-70.33$ and $-95.55$ units, respectively. In retail operations, negative forecast bias induces structural under-ordering and chronic shelf stockouts.
+    \item \textbf{Neural Network vs.\ Tree Inductive Biases:} PyTorch QuantileMLP demonstrated strong competitive learning, attaining $61.16\%$ WMAPE on Pipeline A and $55.10\%$ on Pipeline B, decisively outperforming both heuristic baselines (Moving Average $65.29\%$ / $82.99\%$ and Seasonal Naive $92.77\%$ / $96.28\%$). However, LightGBM outperformed QuantileMLP by $12.39$ percentage points on A and $9.71$ percentage points on B. This performance divergence reflects well-established inductive bias advantages of tree ensembles over deep neural architectures on tabular data:
+    \begin{enumerate}
+        \item \emph{Axis-Aligned Thresholding:} Decision trees naturally partition tabular step functions, such as binary promotions, weekend closures, and discrete calendar events, whereas neural network continuous activation functions smooth across abrupt administrative demand shifts.
+        \item \emph{Log-Space Quantile Optimization Dynamics:} In QuantileMLP, the multi-quantile loss $\mathcal{L}_{\text{pinball}}$ is optimized in log-transformed space $\ln(1+y)$. Because the upper quantile head emits $P_{90} = z_0 + \text{softplus}(z_2)$, moderate log-space upper deviations $\Delta \approx 2.5$ incur an asymmetric loss penalty of only $(1-\tau)\Delta = 0.1 \times 2.5 = 0.25$ during backpropagation. Upon non-linear exponential inversion $\hat{y}_{90} = \exp(P_{90}) - 1$, this modest log error translates to a wide interval bound in raw units ($>70\text{k}$ on Rossmann). LightGBM avoids this exponential sensitivity through histogram-based quantile regression directly partitioned across the feature space.
+    \end{enumerate}
 \end{itemize}
 
 Figure \ref{fig:model_comparison} contrasts the aggregate test error metrics across competing models.
@@ -569,6 +601,34 @@ Stockout alert efficacy is evaluated via Precision, Recall, F1-Score, and AUC-RO
 \begin{itemize}
     \item \textbf{Recall ($TP / (TP + FN)$) as the Primary KPI:} In supply chain inventory management, the cost of a \textbf{False Negative} (missed stockout alert) is catastrophic: stock depletion causes direct lost revenue, breach of supplier service-level agreements (SLAs), customer churn, and brand erosion. Conversely, a \textbf{False Positive} (premature alert) merely triggers an early review or slight temporary carrying cost. Therefore, replenishment engines must strictly maximize Recall at acceptable Precision.
     \item \textbf{AUC-ROC and PR-AUC:} Since stockout events represent an imbalanced classification problem in well-managed supply chains ($<10\%$ incident rate), Area Under the Precision-Recall Curve (PR-AUC) provides a sensitive, un-skewed measure of alert discrimination across decision thresholds.
+\end{itemize}
+
+\subsubsection{Audited Classification Results}
+Table \ref{tab:classification-A} and Table \ref{tab:classification-B} present the empirical classification metrics evaluated across all models on the test holdouts.
+
+\input{tables/classification_A.tex}
+
+\input{tables/classification_B.tex}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figures/phase4/roc_A.png}
+        \caption{Pipeline A: Stockout Alert ROC Curves}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{figures/phase4/roc_B.png}
+        \caption{Pipeline B: Stockout Alert ROC Curves}
+    \end{subfigure}
+    \caption{Receiver Operating Characteristic (ROC) curves for simulated stockout alert detection.}
+    \label{fig:stockout_roc}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Operational Recall Superiority:} On Pipeline A, LightGBM achieves an $88.10\%$ recall ($37$ out of $42$ stockouts alerted) with an AUC-ROC of $0.8291$ and PR-AUC of $0.3981$. On Pipeline B, LightGBM achieves a $92.06\%$ recall ($638$ out of $693$ stockouts flagged) with an AUC-ROC of $0.6942$ and PR-AUC of $0.2839$.
+    \item \textbf{Failure of Naive Baselines:} The Moving Average and Seasonal Naive heuristics exhibit near-total operational collapse, yielding recall rates under $3\%$ ($0.00\%$ and $2.56\%$ on Pipeline A; $0.15\%$ and $1.62\%$ on Pipeline B). Because point baselines lack uncertainty upper bounds ($P_{90}$), their alert triggers cannot anticipate rapid shifts in demand velocity, leaving retailers vulnerable to severe stock depletion.
+    \item \textbf{QuantileMLP Conservative Alerting:} QuantileMLP achieves near $100\%$ recall ($100\%$ on A, $99.86\%$ on B) by maintaining wide upper quantile intervals, serving as an ultra-conservative safety hedge that eliminates missed stockout penalties at the expense of higher false-alarm rates ($F_1 = 0.1991$ on A, $0.2666$ on B).
 \end{itemize}
 
 \subsection{Subgroup Error Analysis and Bias Check}

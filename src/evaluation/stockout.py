@@ -60,6 +60,7 @@ def choose_stock_multiplier(
     spec: EvaluationSpec,
     horizon: int,
     target_positive_range: tuple[float, float] = (0.10, 0.20),
+    history_sales: pd.DataFrame | None = None,
 ) -> float:
     """Choose one simulated-stock multiplier using validation data only."""
     if not validation_predictions:
@@ -84,7 +85,8 @@ def choose_stock_multiplier(
     )
     if joined["actual_source"].isna().any():
         raise ValueError("Validation predictions do not match source sales rows.")
-    stock_basis = compute_origin_known_stock(sales, validation, spec, horizon)
+    source_history = sales if history_sales is None else canonicalize_data_columns(history_sales, spec)
+    stock_basis = compute_origin_known_stock(source_history, validation, spec, horizon)
     actual = joined["actual_source"].to_numpy(dtype=float)
     basis = stock_basis.to_numpy(dtype=float)
     candidates = np.linspace(0.1, 3.0, 117)

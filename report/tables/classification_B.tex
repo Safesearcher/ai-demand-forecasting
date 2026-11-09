@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\caption{Pipeline B Stockout Classification and Operational Alert Metrics}
+\label{tab:classification-B}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrrrrrrr}
+\toprule
+Pipeline & Model & Precision & Recall & F1 & AUC-ROC & PR-AUC & True Neg & False Pos & False Neg & True Pos & Base Rate \\
+\midrule
+B & LightGBM & 0.1917 & 0.9206 & 0.3173 & 0.6942 & 0.2839 & 1117 & 2690 & 55 & 638 & 0.1540 \\
+B & QuantileMLP & 0.1538 & 0.9986 & 0.2666 & 0.5654 & 0.1864 & 0 & 3807 & 1 & 692 & 0.1540 \\
+B & Moving Average 28 & 0.0769 & 0.0015 & 0.0029 & 0.4965 & 0.1587 & 3807 & 12 & 680 & 1 & 0.1513 \\
+B & Seasonal Naive 7 & 0.2157 & 0.0162 & 0.0301 & 0.5020 & 0.1561 & 3779 & 40 & 670 & 11 & 0.1513 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

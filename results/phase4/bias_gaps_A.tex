@@ -5,34 +5,34 @@
 \toprule
 model & subgroup & best\_value & worst\_value & best\_wmape & worst\_wmape & wmape\_gap & best\_bias & worst\_bias & worst\_direction \\
 \midrule
-lgbm & Assortment & a & c & 0.4645 & 0.5034 & 0.0389 & -78.9129 & -77.5643 & under \\
-lgbm & DayOfWeek & 3 & 2 & 0.3946 & 0.5412 & 0.1466 & -501.5227 & 540.4224 & over \\
-lgbm & Promo & 0 & 1 & 0.4657 & 0.4789 & 0.0132 & 3.3912 & -80.4984 & under \\
-lgbm & SchoolHoliday & 1 & 0 & 0.4646 & 0.4721 & 0.0075 & -66.2014 & -15.9130 & under \\
-lgbm & StateHoliday & a & 0 & 0.3228 & 0.4879 & 0.1651 & -236.3428 & 14.6500 & over \\
-lgbm & StoreType & b & a & 0.4523 & 0.5337 & 0.0814 & -90.8762 & 334.0085 & over \\
-lgbm & volume\_tier & low & medium & 0.4495 & 0.4947 & 0.0452 & -177.9778 & 193.7381 & over \\
-mlp & Assortment & b & c & 0.5995 & 0.7923 & 0.1928 & -819.0594 & 1749.6828 & over \\
-mlp & DayOfWeek & 7 & 2 & 0.4766 & 0.8267 & 0.3501 & -500.6807 & 803.3972 & over \\
-mlp & Promo & 1 & 0 & 0.6464 & 0.6587 & 0.0123 & -368.4347 & -188.4168 & under \\
-mlp & SchoolHoliday & 0 & 1 & 0.6412 & 0.7035 & 0.0623 & -278.2221 & -157.8229 & under \\
-mlp & StateHoliday & b & c & 0.6441 & 1.1757 & 0.5316 & -632.7405 & 1349.5765 & over \\
-mlp & StoreType & d & b & 0.5878 & 0.7239 & 0.1361 & -585.3135 & 440.1329 & over \\
-mlp & volume\_tier & high & low & 0.6077 & 0.7053 & 0.0976 & -243.1086 & 570.7266 & over \\
-moving\_average\_28 & Assortment & a & c & 0.6596 & 0.6802 & 0.0206 & -1294.6042 & -1716.8537 & under \\
-moving\_average\_28 & DayOfWeek & 2 & 6 & 0.6215 & 0.7093 & 0.0878 & -692.8333 & -1207.9332 & under \\
-moving\_average\_28 & Promo & 0 & 1 & 0.6340 & 0.7157 & 0.0817 & -1369.3982 & -1557.5052 & under \\
-moving\_average\_28 & SchoolHoliday & 0 & 1 & 0.6577 & 0.6792 & 0.0215 & -1376.7134 & -1659.2264 & under \\
-moving\_average\_28 & StateHoliday & b & 0 & 0.5839 & 0.6677 & 0.0837 & -1744.1048 & -1470.0086 & under \\
-moving\_average\_28 & StoreType & a & d & 0.5773 & 0.6954 & 0.1181 & -1561.9536 & -1441.6874 & under \\
-moving\_average\_28 & volume\_tier & low & high & 0.6458 & 0.6824 & 0.0366 & -1408.8750 & -1443.1048 & under \\
-seasonal\_naive\_7 & Assortment & a & c & 0.9007 & 0.9527 & 0.0520 & -3060.2560 & -3192.7381 & under \\
-seasonal\_naive\_7 & DayOfWeek & 1 & 6 & 0.8771 & 0.9744 & 0.0973 & -3191.7500 & -2739.0000 & under \\
-seasonal\_naive\_7 & Promo & 0 & 1 & 0.9081 & 0.9396 & 0.0315 & -3139.3296 & -3113.2133 & under \\
-seasonal\_naive\_7 & SchoolHoliday & 1 & 0 & 0.8576 & 0.9353 & 0.0777 & -2955.6629 & -3176.8792 & under \\
-seasonal\_naive\_7 & StateHoliday & b & 0 & 0.6996 & 0.9316 & 0.2320 & -2489.5000 & -3205.9947 & under \\
-seasonal\_naive\_7 & StoreType & d & b & 0.8927 & 0.9382 & 0.0455 & -3024.9841 & -3184.5000 & under \\
-seasonal\_naive\_7 & volume\_tier & high & low & 0.9013 & 0.9403 & 0.0390 & -3149.4048 & -3136.8690 & under \\
+lgbm & Assortment & a & c & 0.4519 & 0.5678 & 0.1159 & -153.4976 & 219.7241 & over \\
+lgbm & DayOfWeek & 3 & 5 & 0.4075 & 0.5770 & 0.1695 & -238.1134 & 431.2455 & over \\
+lgbm & Promo & 1 & 0 & 0.4773 & 0.4933 & 0.0160 & -8.7061 & -119.1931 & under \\
+lgbm & SchoolHoliday & 1 & 0 & 0.4257 & 0.5008 & 0.0751 & -158.4660 & -64.9826 & under \\
+lgbm & StateHoliday & c & b & 0.4060 & 0.7914 & 0.3854 & -10.4328 & 1415.6049 & over \\
+lgbm & StoreType & d & c & 0.4458 & 0.5343 & 0.0886 & -167.2766 & -15.4791 & under \\
+lgbm & volume\_tier & high & medium & 0.4657 & 0.4978 & 0.0322 & 47.7040 & -22.0018 & under \\
+mlp & Assortment & a & c & 0.5674 & 0.6675 & 0.1001 & -990.0295 & 69.7780 & over \\
+mlp & DayOfWeek & 2 & 5 & 0.5583 & 0.7452 & 0.1869 & -565.6848 & 294.9657 & over \\
+mlp & Promo & 0 & 1 & 0.5857 & 0.6607 & 0.0751 & -546.1774 & 139.5448 & over \\
+mlp & SchoolHoliday & 1 & 0 & 0.5792 & 0.6185 & 0.0392 & -287.7753 & -311.8826 & under \\
+mlp & StateHoliday & 0 & b & 0.6010 & 0.9653 & 0.3643 & -365.4775 & 660.4782 & over \\
+mlp & StoreType & d & b & 0.5591 & 0.7278 & 0.1686 & -931.7912 & 1321.4495 & over \\
+mlp & volume\_tier & high & low & 0.5835 & 0.6369 & 0.0534 & -757.5231 & 215.5369 & over \\
+moving\_average\_28 & Assortment & b & c & 0.6287 & 0.7100 & 0.0814 & -1623.4947 & -494.8810 & under \\
+moving\_average\_28 & DayOfWeek & 1 & 7 & 0.5784 & 0.7137 & 0.1353 & -1381.8178 & -734.1955 & under \\
+moving\_average\_28 & Promo & 1 & 0 & 0.6445 & 0.6576 & 0.0130 & -1216.9204 & -1115.2506 & under \\
+moving\_average\_28 & SchoolHoliday & 1 & 0 & 0.5976 & 0.6635 & 0.0659 & -749.2274 & -1232.2461 & under \\
+moving\_average\_28 & StateHoliday & c & b & 0.5344 & 0.7002 & 0.1658 & -1712.1542 & -2532.7738 & under \\
+moving\_average\_28 & StoreType & d & b & 0.6150 & 0.6798 & 0.0648 & -1185.2029 & -1312.8274 & under \\
+moving\_average\_28 & volume\_tier & high & medium & 0.6300 & 0.6678 & 0.0377 & -1091.4434 & -940.1256 & under \\
+seasonal\_naive\_7 & Assortment & a & c & 0.9130 & 0.9530 & 0.0400 & -3224.6131 & -2691.3492 & under \\
+seasonal\_naive\_7 & DayOfWeek & 3 & 1 & 0.8903 & 0.9850 & 0.0947 & -3453.5500 & -3306.9333 & under \\
+seasonal\_naive\_7 & Promo & 0 & 1 & 0.9239 & 0.9346 & 0.0107 & -2928.4380 & -3302.3904 & under \\
+seasonal\_naive\_7 & SchoolHoliday & 0 & 1 & 0.9148 & 0.9950 & 0.0802 & -3033.7908 & -3179.5493 & under \\
+seasonal\_naive\_7 & StateHoliday & b & c & 0.8143 & 0.9804 & 0.1661 & -3373.8333 & -3700.4286 & under \\
+seasonal\_naive\_7 & StoreType & c & b & 0.9105 & 0.9612 & 0.0507 & -2919.0357 & -3284.7976 & under \\
+seasonal\_naive\_7 & volume\_tier & low & medium & 0.8925 & 0.9873 & 0.0948 & -3066.9107 & -2986.3730 & under \\
 \bottomrule
 \end{tabular}
 \end{table}

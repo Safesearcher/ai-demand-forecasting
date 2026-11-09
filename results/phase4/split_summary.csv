@@ -1,0 +1,4 @@
+pipeline,split,rows,date_min,date_max
+B,train,9250,2013-01-01,2013-07-04
+B,validation,4500,2013-07-05,2013-10-02
+B,test,4500,2013-10-03,2013-12-31

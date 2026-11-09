@@ -1,0 +1,11 @@
+model,date,wmape,bias
+seasonal_naive_7,2013-10-12,1.0,-101.72
+seasonal_naive_7,2013-10-11,1.0,-109.94
+seasonal_naive_7,2013-10-10,1.0,-83.52
+seasonal_naive_7,2013-10-19,1.0,-107.64
+seasonal_naive_7,2013-10-18,1.0,-97.24
+seasonal_naive_7,2013-10-17,1.0,-92.42
+seasonal_naive_7,2013-10-16,1.0,-91.2
+seasonal_naive_7,2013-10-15,1.0,-102.3
+seasonal_naive_7,2013-10-14,1.0,-103.12
+seasonal_naive_7,2013-10-13,1.0,-98.0

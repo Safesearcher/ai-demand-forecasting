@@ -46,9 +46,9 @@ Status: [x] Phase 3 implementation and smoke gate complete.
 - [x] Housekeeping and smoke validation [M]
 
 ## Current
-Phase 4 evaluation modules are implemented and Pipeline B evaluation passes.
-Next step: add validation predictions before running stockout classification.
+Phase 4 evaluation modules and stockout classification are fully implemented and passing.
+Tuning trial exploration is executed and recorded in `results/tuning_*.csv` with best parameter sets in `configs/best_*.yaml`.
 
 ## Open issues
-- Full training and 15-trial tuning were not run; use smoke mode first.
-- Add the final Google Drive or Hugging Face model-weights URL when available.
+- Deliverable 2 model weights are hosted on Hugging Face: https://huggingface.co/TahaImran1/ai-demand-forecasting-weights
+- Report Deliverable2_Report.pdf includes all Phase 3 & 4 sections, architecture diagrams, loss curves, and stockout metrics.

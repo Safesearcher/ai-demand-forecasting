@@ -1,17 +1,17 @@
 \begin{table}[htbp]
 \centering
-\caption{Pipeline B (Store Item) Test Evaluation Forecast Metrics against Baselines}
+\caption{Pipeline B (Store Item) Test Forecast Performance Metrics}
 \label{tab:metrics-B}
-\resizebox{\textwidth}{!}{%
+\resizebox{\textwidth}{!}{
 \begin{tabular}{llrrrrrrrrr}
 \toprule
-pipeline & model & mae & rmse & wmape & bias & pinball\_p10 & pinball\_p50 & pinball\_p90 & coverage\_p10\_p90 & mean\_interval\_width \\
+Pipeline & Model & MAE & RMSE & WMAPE & Bias & Pinball $P_{10}$ & Pinball $P_{50}$ & Pinball $P_{90}$ & Coverage $[P_{10}, P_{90}]$ & Mean Interval Width \\
 \midrule
-B & lgbm & 47.2361 & 54.6312 & 0.4539 & -0.1242 & 8.5044 & 23.6180 & 8.5909 & 0.8107 & 153.4705 \\
-B & mlp & 103.6841 & 117.1891 & 0.9964 & -103.6841 & 10.4062 & 51.8420 & 91.8197 & 0.0000 & 2.0399 \\
-B & moving\_average\_28 & 86.3580 & 102.3185 & 0.8299 & -70.3276 & 15.0480 & 43.1790 & 71.3100 & 0.0004 & 0.0000 \\
-B & seasonal\_naive\_7 & 100.1911 & 114.3727 & 0.9628 & -95.5524 & 11.8746 & 50.0956 & 88.3165 & 0.0009 & 0.0000 \\
+B & LightGBM & 47.24 & 54.63 & 0.4539 & -0.12 & 8.50 & 23.62 & 8.59 & 0.8107 & 153.47 \\
+B & QuantileMLP & 57.34 & 70.88 & 0.5510 & 21.60 & 15.27 & 28.67 & 69.64 & 0.6671 & 727.35 \\
+B & Moving Average 28 & 86.36 & 102.32 & 0.8299 & -70.33 & 15.05 & 43.18 & 71.31 & 0.0004 & 0.00 \\
+B & Seasonal Naive 7 & 100.19 & 114.37 & 0.9628 & -95.55 & 11.87 & 50.10 & 88.32 & 0.0009 & 0.00 \\
 \bottomrule
-\end{tabular}%
+\end{tabular}
 }
 \end{table}

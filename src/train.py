@@ -130,15 +130,15 @@ def _run_mlp_epoch(
         categorical_ids = categorical_ids.to(device)
         numeric_features = numeric_features.to(device)
         targets = targets.to(device)
+        batch_rows = len(targets)
         with torch.set_grad_enabled(training):
             predictions = model(categorical_ids, numeric_features)
-            loss = pinball_loss(predictions, targets)
+            loss = pinball_loss(predictions, targets) / max(1, batch_rows)
             if training:
                 optimizer.zero_grad(set_to_none=True)
                 loss.backward()
                 optimizer.step()
-        batch_rows = len(targets)
-        total_loss += float(loss.detach().cpu())
+        total_loss += float(loss.detach().cpu()) * batch_rows
         total_rows += batch_rows
     return total_loss / max(1, total_rows)
 
