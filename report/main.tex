@@ -427,7 +427,7 @@ Figure \ref{fig:model_architecture} synthesizes the end-to-end design of our two
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/architecture_diagram.png}
-    \caption{AI Demand Forecasting Architecture: (Left) PyTorch QuantileMLP with Entity Embeddings, standardized multi-horizon features, dense backbone with dropout ($p=0.2$), and softplus monotonic quantile head guaranteeing $P_{10} \le P_{50} \le P_{90}$; (Right) LightGBM Quantile Ensemble with dedicated estimators ($\tau \in \{0.1, 0.5, 0.9\}$) and post-hoc monotonic sorting.}
+    \caption{AI Demand Forecasting Architecture: (Left) PyTorch QuantileMLP with Entity Embeddings, standardized multi-horizon features, dense backbone with dropout ($p \in \{0.10, 0.30\}$), and softplus monotonic quantile head guaranteeing $P_{10} \le P_{50} \le P_{90}$; (Right) LightGBM Quantile Ensemble with dedicated estimators ($\tau \in \{0.1, 0.5, 0.9\}$) and post-hoc monotonic sorting.}
     \label{fig:model_architecture}
 \end{figure}
 
@@ -600,7 +600,7 @@ where $z = 1.65$ corresponds to a 95\% cycle service level. A binary \textbf{Sto
 Stockout alert efficacy is evaluated via Precision, Recall, F1-Score, and AUC-ROC / PR-AUC:
 \begin{itemize}
     \item \textbf{Recall ($TP / (TP + FN)$) as the Primary KPI:} In supply chain inventory management, the cost of a \textbf{False Negative} (missed stockout alert) is catastrophic: stock depletion causes direct lost revenue, breach of supplier service-level agreements (SLAs), customer churn, and brand erosion. Conversely, a \textbf{False Positive} (premature alert) merely triggers an early review or slight temporary carrying cost. Therefore, replenishment engines must strictly maximize Recall at acceptable Precision.
-    \item \textbf{AUC-ROC and PR-AUC:} Since stockout events represent an imbalanced classification problem in well-managed supply chains ($<10\%$ incident rate), Area Under the Precision-Recall Curve (PR-AUC) provides a sensitive, un-skewed measure of alert discrimination across decision thresholds.
+    \item \textbf{AUC-ROC and PR-AUC:} In inventory operations, stockout events represent an asymmetric, class-imbalanced problem ($23.79\%$ incident rate on Pipeline A, $34.88\%$ on Pipeline B under simulated lead-time inventory pressure). Area Under the Precision-Recall Curve (PR-AUC) and ROC curves provide sensitive, un-skewed measures of alert discrimination across the operational decision spectrum.
 \end{itemize}
 
 \subsubsection{Audited Classification Results}

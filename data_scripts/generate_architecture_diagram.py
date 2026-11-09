@@ -63,7 +63,7 @@ def generate_diagram(output_path: Path) -> None:
     rect_bb = patches.FancyBboxPatch((0.15, 0.22), 0.38, 0.11, boxstyle='round,pad=0.01', 
                                      facecolor=c_backbone, edgecolor=c_border, linewidth=1.2)
     ax.add_patch(rect_bb)
-    ax.text(0.34, 0.29, 'Dense Backbone with Dropout (p = 0.2)', ha='center', va='center', fontsize=10, fontweight='bold')
+    ax.text(0.34, 0.29, r'Dense Backbone with Dropout ($p \in \{0.10, 0.30\}$)', ha='center', va='center', fontsize=9.5, fontweight='bold')
     ax.text(0.34, 0.245, 'Linear(256) -> ReLU -> Dropout -> Linear(128) -> ReLU -> Linear(64)', 
             ha='center', va='center', fontsize=8, color='#444')
 
@@ -90,28 +90,45 @@ def generate_diagram(output_path: Path) -> None:
     ax.text(0.825, 0.86, 'Track 2: LightGBM Quantile Ensemble', ha='center', va='center', 
             fontsize=12, fontweight='bold', color='#196F3D')
 
-    y_pos = [0.68, 0.48, 0.28]
-    quant_labels = [('Estimator 1 (tau = 0.10)', 'Lower Bound P10 Regressor'), 
-                    ('Estimator 2 (tau = 0.50)', 'Median Demand P50 Regressor'), 
-                    ('Estimator 3 (tau = 0.90)', 'Upper Bound P90 Regressor')]
+    # Feature input for Track 2
+    rect_lgbm_in = patches.FancyBboxPatch((0.70, 0.73), 0.25, 0.08, boxstyle='round,pad=0.01',
+                                          facecolor=c_input, edgecolor=c_border, linewidth=1.2)
+    ax.add_patch(rect_lgbm_in)
+    ax.text(0.825, 0.77, 'Tabular Feature Space', ha='center', va='center', fontsize=9.5, fontweight='bold')
+    ax.text(0.825, 0.745, 'Lags, Rolling Means, Calendar Encodings', ha='center', va='center', fontsize=7.5, color='#444')
 
-    for (q_title, q_sub), yp in zip(quant_labels, y_pos):
-        rect_tree = patches.FancyBboxPatch((0.70, yp), 0.25, 0.13, boxstyle='round,pad=0.01', 
+    # 3 Parallel Estimators side-by-side
+    x_positions = [0.70, 0.785, 0.87]
+    quant_labels = [
+        (r'$\tau = 0.10$', 'Lower Bound\n$P_{10}$ Model'),
+        (r'$\tau = 0.50$', 'Median Demand\n$P_{50}$ Model'),
+        (r'$\tau = 0.90$', 'Upper Bound\n$P_{90}$ Model'),
+    ]
+
+    for (q_tau, q_name), xp in zip(quant_labels, x_positions):
+        rect_tree = patches.FancyBboxPatch((xp, 0.30), 0.075, 0.35, boxstyle='round,pad=0.01', 
                                            facecolor=c_lgbm, edgecolor='#27AE60', linewidth=1.2)
         ax.add_patch(rect_tree)
-        ax.text(0.825, yp + 0.08, q_title, ha='center', va='center', fontsize=9.5, fontweight='bold', color='#145A32')
-        ax.text(0.825, yp + 0.035, q_sub + '\nLeaf-wise split, early stopping', ha='center', va='center', fontsize=7.5, color='#333')
+        cx = xp + 0.0375
+        ax.text(cx, 0.60, q_tau, ha='center', va='center', fontsize=10, fontweight='bold', color='#145A32')
+        ax.text(cx, 0.51, q_name, ha='center', va='center', fontsize=8, color='#145A32', multialignment='center')
+        ax.text(cx, 0.38, 'LightGBM\nBooster\n(15 leaves)', ha='center', va='center', fontsize=7.5, color='#444', multialignment='center')
 
-    rect_sort = patches.FancyBboxPatch((0.70, 0.08), 0.25, 0.09, boxstyle='round,pad=0.01', 
+        # Arrow from input box down into each estimator (non-crossing)
+        ax.annotate('', xy=(cx, 0.65), xytext=(cx, 0.73), arrowprops=dict(arrowstyle='->', lw=1.2, color='#2C3E50'))
+
+        # Arrow from each estimator down into sorting box (non-crossing)
+        ax.annotate('', xy=(cx, 0.22), xytext=(cx, 0.30), arrowprops=dict(arrowstyle='->', lw=1.2, color='#27AE60'))
+
+    # Bottom Sorting & Inversion Box
+    rect_sort = patches.FancyBboxPatch((0.70, 0.08), 0.25, 0.14, boxstyle='round,pad=0.01', 
                                        facecolor='#D5F5E3', edgecolor='#1E8449', linewidth=1.5)
     ax.add_patch(rect_sort)
-    ax.text(0.825, 0.135, 'Monotonic Sorting & Inversion', ha='center', va='center', 
+    ax.text(0.825, 0.18, 'Monotonic Sorting & Inversion', ha='center', va='center', 
             fontsize=9.5, fontweight='bold', color='#1E8449')
-    ax.text(0.825, 0.095, 'sort([P10, P50, P90], axis=1)\nexpm1() & closed-day zero mask', 
-            ha='center', va='center', fontsize=7.5, color='#145A32')
-
-    for yp in y_pos:
-        ax.annotate('', xy=(0.825, 0.17), xytext=(0.825, yp), arrowprops=dict(arrowstyle='->', lw=1.2, color='#27AE60'))
+    ax.text(0.825, 0.12, r'$\hat{Y} = \mathrm{sort}([P_{10}, P_{50}, P_{90}], \mathrm{axis}=1)$' + '\n' +
+            r'$\hat{y} = \max(0, \exp(\hat{Y}) - 1) \cdot \mathbb{I}(\mathrm{Open} = 1)$', 
+            ha='center', va='center', fontsize=8, color='#145A32', multialignment='center')
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
