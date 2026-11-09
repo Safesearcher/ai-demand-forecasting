@@ -1,17 +1,14 @@
-\begin{table}[htbp]
-\centering
-\caption{Pipeline A (Rossmann) Test Forecast Performance Metrics}
+\begin{table}
+\caption{A test forecast metrics}
 \label{tab:metrics-A}
-\resizebox{\textwidth}{!}{
 \begin{tabular}{llrrrrrrrrr}
 \toprule
-Pipeline & Model & MAE & RMSE & WMAPE & Bias & Pinball $P_{10}$ & Pinball $P_{50}$ & Pinball $P_{90}$ & Coverage $[P_{10}, P_{90}]$ & Mean Interval Width \\
+pipeline & model & mae & rmse & wmape & bias & pinball\_p10 & pinball\_p50 & pinball\_p90 & coverage\_p10\_p90 & mean\_interval\_width \\
 \midrule
-A & LightGBM & 1815.01 & 2184.25 & 0.4877 & -80.79 & 325.30 & 907.50 & 309.59 & 0.8333 & 5688.75 \\
-A & QuantileMLP & 2276.04 & 2966.32 & 0.6116 & -307.81 & 360.64 & 1138.02 & 7045.16 & 0.8643 & 72954.46 \\
-A & Moving Average 28 & 2429.70 & 3095.67 & 0.6529 & -1150.59 & 754.61 & 1214.85 & 1675.09 & 0.0952 & 0.00 \\
-A & Seasonal Naive 7 & 3452.24 & 4244.86 & 0.9277 & -3058.43 & 502.75 & 1726.12 & 2949.49 & 0.0952 & 0.00 \\
+A & lgbm & 520.4790 & 836.2089 & 0.0867 & -13.4566 & 109.2555 & 260.2395 & 131.9755 & 0.8031 & 1550.4597 \\
+A & mlp & 755.5348 & 1630.2162 & 0.1259 & 259.7703 & 341.3187 & 377.7674 & 1042.1873 & 0.9989 & 13816.8992 \\
+A & moving\_average\_28 & 2701.7103 & 4283.0947 & 0.4501 & -2198.0388 & 471.6396 & 1350.8551 & 2230.0707 & 0.1399 & 0.0000 \\
+A & seasonal\_naive\_7 & 5501.6462 & 6749.7578 & 0.9165 & -4868.5284 & 803.4118 & 2750.8231 & 4698.2344 & 0.1398 & 0.0000 \\
 \bottomrule
 \end{tabular}
-}
 \end{table}
