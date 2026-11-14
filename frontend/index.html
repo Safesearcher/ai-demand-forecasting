@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en" data-type="software" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="page-type" content="software">
+  <meta name="site-kind" content="software">
+  <meta name="description" content="AI Demand Forecasting and Inventory Decision Support — Probabilistic quantile demand forecasting and safety stock decision support.">
+  <title>AI Demand Forecasting & Inventory Decision Support</title>
+  
+  <!-- Font preconnect & typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- CDN Library: Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Accessibility Skip Link -->
+  <a href="#main-content" class="skip-to-content">Skip to main content</a>
+
+  <!-- Mandatory Disclaimers Banner (SRS Section 2 & 6) -->
+  <aside class="disclaimer-banner" role="complementary" aria-label="System Disclaimers">
+    <div class="mandatory-notice">
+      <span class="badge-sim">SIMULATION NOTICE</span>
+      <span>Stock and lead-time values are simulated/user-entered.</span>
+    </div>
+    <div class="origin-notice">
+      Benchmark datasets: Rossmann Store Sales & Store Item Demand (do not represent Pakistani retail).
+    </div>
+  </aside>
+
+  <!-- Sticky Navigation Header -->
+  <header class="app-header" role="banner">
+    <div class="header-container">
+      <div class="header-top-row">
+        <a href="#/dashboard" class="brand-section" aria-label="Home — AI Demand Forecasting & Inventory Decision Support">
+          <div class="brand-icon-wrap" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+              <path d="M6 28 C11 22, 18 10, 18 7 C18 10, 25 22, 30 28" stroke="#FACC15" stroke-width="3.5" stroke-linecap="round"/>
+              <line x1="10" y1="20" x2="26" y2="20" stroke="#FDE047" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="18" cy="7" r="2.5" fill="#FFFFFF"/>
+            </svg>
+          </div>
+          <div class="brand-title-wrap">
+            <span class="brand-name">AI Demand Forecasting &amp; Inventory Decision Support</span>
+            <span class="brand-subtitle">Quantile Uncertainty (P10/P50/P90) &bull; Safety Stock Optimization</span>
+          </div>
+        </a>
+
+        <!-- Global Controls: Segmented Dataset Control & Theme toggle -->
+        <div class="header-controls">
+          <div class="dataset-segmented-control" role="radiogroup" aria-label="Active Dataset">
+            <button type="button" class="dataset-segment-btn active" id="btn-dataset-store-item" role="radio" aria-checked="true" title="Kaggle Store Item Demand (10 stores x 50 items)">Store &times; Item Demand</button>
+            <button type="button" class="dataset-segment-btn" id="btn-dataset-rossmann" role="radio" aria-checked="false" title="Kaggle Rossmann Store Sales (1,115 stores with promo/holiday)">Rossmann Store Sales</button>
+          </div>
+
+          <button type="button" class="btn-icon" id="theme-toggle" aria-label="Toggle Dark Mode" title="Toggle color scheme">
+            <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Navigation -->
+      <nav class="app-nav" role="navigation" aria-label="Main Navigation">
+        <a href="#/dashboard" class="nav-link active" id="nav-dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+          Dashboard
+        </a>
+        <a href="#/item" class="nav-link" id="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          Item Detail
+        </a>
+        <a href="#/evaluation" class="nav-link" id="nav-evaluation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          Evaluation
+        </a>
+        <a href="#/upload" class="nav-link" id="nav-upload">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Data Upload
+        </a>
+        <a href="#/models" class="nav-link" id="nav-models">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Models
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Mount Area -->
+  <main id="main-content" class="main-layout" role="main">
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: DASHBOARD (FR-09, FR-10)          -->
+    <!-- ========================================== -->
+    <section id="view-dashboard" class="page-view active" aria-labelledby="heading-dashboard">
+      <div class="page-header">
+        <div>
+          <h1 id="heading-dashboard" class="page-title">Executive Demand &amp; Reorder Dashboard</h1>
+          <p class="page-description">
+            Near-future demand predictions with P10–P90 uncertainty bands and live safety stock decision support.
+          </p>
+        </div>
+        <div class="page-actions">
+          <span class="badge badge-model" id="dashboard-active-model-badge">Active Model: v1.2.0 LightGBM</span>
+          <button type="button" class="btn btn-outline" id="btn-refresh-dashboard">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            Refresh Forecasts
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Strip with Specular Cursor Follow -->
+      <div class="kpi-grid">
+        <div class="kpi-card warning-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Series Needing Attention</span>
+            <div class="kpi-icon" style="background-color: var(--amber-light); color: var(--amber);">⚠</div>
+          </div>
+          <div class="kpi-value tabular-nums" id="kpi-attention-count">4</div>
+          <div class="kpi-caption">Series where recommended reorder Q &gt; 0</div>
+        </div>
+
+        <div class="kpi-card accent-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Units Recommended to Order</span>
+            <div class="kpi-icon" style="background-color: var(--accent-subtle); color: var(--accent);">📦</div>
+          </div>
+          <div class="kpi-value tabular-nums" id="kpi-units-to-order">535</div>
+          <div class="kpi-caption">Sum of Q across all flagged series</div>
+        </div>
+
+        <div class="kpi-card alert-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Stockout Risk Alerts</span>
+            <div class="kpi-icon" style="background-color: var(--red-light); color: var(--red);">🚨</div>
+          </div>
+          <div class="kpi-value tabular-nums" id="kpi-stockout-count">2</div>
+          <div class="kpi-caption">Stock + Incoming &lt; P90 demand over Lead Time L</div>
+        </div>
+
+        <div class="kpi-card neutral-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Model Calibration</span>
+            <div class="kpi-icon" style="background-color: var(--blue-light); color: var(--blue);">🎯</div>
+          </div>
+          <div class="kpi-value tabular-nums">80.4%</div>
+          <div class="kpi-caption">P10–P90 empirical coverage (Target ≈ 80%)</div>
+        </div>
+      </div>
+
+      <!-- Stockout Risk Notification Banner -->
+      <div class="alerts-banner-wrap" id="dashboard-alerts-container">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Main Reorder Recommendations Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Reorder Recommendations &amp; Inventory Status</h2>
+            <span class="card-subtitle">Prioritized ranking based on urgency and stockout risk (FR-08, FR-09)</span>
+          </div>
+          <div class="page-actions">
+            <label for="filter-status-select" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Status:</label>
+            <select id="filter-status-select" class="form-input" style="width: auto; padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+              <option value="all">All Series</option>
+              <option value="risk">Stockout Risk</option>
+              <option value="reorder">Reorder Recommended</option>
+              <option value="healthy">Healthy</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" aria-label="Reorder Recommendations">
+            <thead>
+              <tr>
+                <th scope="col">Series ID</th>
+                <th scope="col">Product / Store</th>
+                <th scope="col" class="align-right">Stock (S)</th>
+                <th scope="col" class="align-right">Incoming (I)</th>
+                <th scope="col" class="align-right">L / R (Days)</th>
+                <th scope="col" class="align-right">D<sub>T</sub> (P50)</th>
+                <th scope="col" class="align-right">Safety Stock (SS)</th>
+                <th scope="col" class="align-right">Order Q</th>
+                <th scope="col">Decision Status</th>
+                <th scope="col" class="align-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="reorder-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- History vs Forecast Chart Section -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Demand Trajectory &amp; Probabilistic Forecast</h2>
+            <span class="card-subtitle">90-day history with 28-day P10/P50/P90 quantile band for <strong id="chart-focused-series-name">Item 17 @ Store 3</strong></span>
+          </div>
+          <div class="page-actions">
+            <a href="#/item?id=item-17-store-3" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+              Open Item Decision View &rarr;
+            </a>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-container" style="height: 380px;">
+            <canvas id="dashboard-history-chart" aria-label="Demand trajectory history and forecast chart" role="img"></canvas>
+          </div>
+          <div class="chart-legend-custom" aria-hidden="true">
+            <div class="legend-item">
+              <span class="legend-swatch"></span>
+              <span>Observed History (Actual Daily Sales)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-swatch"></span>
+              <span>P50 Median Forecast (Point Estimate)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-swatch"></span>
+              <span>P10–P90 Uncertainty Interval (80% Confidence Band)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: ITEM / STORE DETAIL (FR-07, 08, 12) -->
+    <!-- ========================================== -->
+    <section id="view-item" class="page-view" aria-labelledby="heading-item">
+      <div class="page-header">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <h1 id="heading-item" class="page-title">Item &amp; Store Inventory Decision Console</h1>
+            <span class="badge badge-risk" id="item-header-badge">Stockout Risk</span>
+          </div>
+          <p class="page-description">
+            Live parameterized safety stock recomputation and manager decision logging (FR-07, FR-08, FR-12).
+          </p>
+        </div>
+        <div class="page-actions">
+          <label for="detail-series-select" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Select Series:</label>
+          <select id="detail-series-select" class="form-input" style="width: auto; min-width: 230px;">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Item Meta Headline Banner -->
+      <div class="card" style="margin-bottom: 1.75rem; background: var(--bg-surface-subtle);">
+        <div class="card-body" style="padding: 1.15rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700;">Active Focus</span>
+            <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main);" id="item-display-title">Item 17 @ Store 3 &bull; Organic Rolled Oats 1kg</div>
+          </div>
+          <div style="display: flex; gap: 1.75rem; font-size: 0.85rem; flex-wrap: wrap;">
+            <div><span style="color: var(--text-muted);">Stock:</span> <strong class="tabular-nums" id="meta-stock">40</strong></div>
+            <div><span style="color: var(--text-muted);">Incoming:</span> <strong class="tabular-nums" id="meta-incoming">0</strong></div>
+            <div><span style="color: var(--text-muted);">L / R:</span> <strong class="tabular-nums" id="meta-lr">3 / 7 days</strong></div>
+            <div><span style="color: var(--text-muted);">10-Day Forecast D<sub>T</sub>:</span> <strong class="tabular-nums" id="meta-dt">120 units</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Worked Example & Interactive Decision Calculator -->
+      <div class="grid-detail">
+        <!-- Left: Interactive Form Controls -->
+        <div class="form-panel">
+          <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;">
+            <span>Inventory Parameters</span>
+            <button type="button" class="btn btn-outline" id="btn-reset-worked-example" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" title="Reset to SRS Section 4 Worked Example (Q=110)">Reset SRS Example</button>
+          </h2>
+
+          <div class="form-group">
+            <label for="input-lead-time" class="form-label">
+              <span>Lead Time (days)</span>
+              <span class="symbol">L</span>
+            </label>
+            <input type="number" id="input-lead-time" class="form-input" min="1" max="60" value="3">
+          </div>
+
+          <div class="form-group">
+            <label for="input-review-period" class="form-label">
+              <span>Review Period (days)</span>
+              <span class="symbol">R</span>
+            </label>
+            <input type="number" id="input-review-period" class="form-input" min="1" max="60" value="7">
+          </div>
+
+          <div class="form-group">
+            <label for="input-stock-on-hand" class="form-label">
+              <span>Stock On Hand (units)</span>
+              <span class="symbol">S</span>
+            </label>
+            <input type="number" id="input-stock-on-hand" class="form-input" min="0" max="10000" value="40">
+          </div>
+
+          <div class="form-group">
+            <label for="input-incoming-orders" class="form-label">
+              <span>Incoming Orders (units)</span>
+              <span class="symbol">I</span>
+            </label>
+            <input type="number" id="input-incoming-orders" class="form-input" min="0" max="10000" value="0">
+          </div>
+
+          <div class="form-group">
+            <label for="input-service-level-z" class="form-label">
+              <span>Service Level Factor (z)</span>
+              <span class="symbol" id="z-label-val">z = 1.65 (95%)</span>
+            </label>
+            <select id="input-service-level-z" class="form-input">
+              <option value="1.28">90.0% (z = 1.28)</option>
+              <option value="1.65" selected>95.0% (z = 1.65) — SRS Default</option>
+              <option value="1.96">97.5% (z = 1.96)</option>
+              <option value="2.33">99.0% (z = 2.33)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="input-sigma-d" class="form-label">
+              <span>Daily Validation RMSE</span>
+              <span class="symbol">&sigma;<sub>d</sub></span>
+            </label>
+            <input type="number" id="input-sigma-d" class="form-input" step="0.1" min="0.1" max="1000" value="5.7">
+          </div>
+
+          <div class="form-group">
+            <label for="input-demand-forecast" class="form-label">
+              <span>P50 Demand over T days</span>
+              <span class="symbol">D<sub>T</sub></span>
+            </label>
+            <input type="number" id="input-demand-forecast" class="form-input" min="0" max="100000" value="120">
+          </div>
+
+          <!-- Formula Step-by-Step Breakdown -->
+          <div class="formula-breakdown">
+            <div style="font-weight: 700; margin-bottom: 0.35rem; color: var(--text-main); font-size: 0.75rem; text-transform: uppercase;">Formula Engine (SRS &sect;4)</div>
+            <div class="formula-step">
+              <span>Protection T = L + R</span>
+              <span id="step-t-val" class="tabular-nums">3 + 7 = 10 days</span>
+            </div>
+            <div class="formula-step">
+              <span>Safety Stock SS = z &times; &sigma;<sub>d</sub> &times; &radic;T</span>
+              <span id="step-ss-val" class="tabular-nums">1.65 &times; 5.7 &times; 3.16 &approx; 29.74 &approx; 30</span>
+            </div>
+            <div class="formula-step">
+              <span>Net Demand: D<sub>T</sub> + SS</span>
+              <span id="step-net-val" class="tabular-nums">120 + 30 = 150</span>
+            </div>
+            <div class="formula-step">
+              <span>Existing Position: S + I</span>
+              <span id="step-pos-val" class="tabular-nums">40 + 0 = 40</span>
+            </div>
+            <div class="formula-step total">
+              <span>Order Q = max(0, &lceil;D<sub>T</sub>+SS-S-I&rceil;)</span>
+              <span id="step-q-val" class="tabular-nums" style="color: var(--accent);">110 Units</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Decision Callout & Interactive Decision Log -->
+        <div>
+          <!-- Decision Result Card -->
+          <div class="decision-callout" id="decision-callout-box">
+            <div class="callout-header">
+              <span class="callout-label" id="callout-status-label">&bull; Reorder Recommended</span>
+              <span class="badge badge-risk" id="callout-risk-badge">Stockout Risk Flagged</span>
+            </div>
+
+            <div class="order-headline">
+              <span>Recommended Order:</span>
+              <span class="quantity-large tabular-nums" id="live-order-q">110 UNITS</span>
+            </div>
+
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;" id="live-recommendation-explanation">
+              Existing stock (40) is below lead-time P90 demand (48). Order <strong>110 units</strong> to satisfy 10-day demand and hold 30 units of safety buffer.
+            </p>
+
+            <!-- Manager Action Buttons (FR-12) -->
+            <div class="btn-group">
+              <button type="button" class="btn btn-primary btn-magnetic" id="btn-accept-rec">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Accept (Order <span id="btn-accept-qty">110</span>)
+              </button>
+              <button type="button" class="btn btn-outline" id="btn-adjust-rec">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Adjust Quantity...
+              </button>
+              <button type="button" class="btn btn-danger" id="btn-reject-rec">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                Reject Order
+              </button>
+            </div>
+          </div>
+
+          <!-- Item Specific Forecast Chart -->
+          <div class="card" style="margin-top: 1.75rem;">
+            <div class="card-header">
+              <span class="card-title" style="font-size: 0.95rem;">Uncertainty Forecast Over Protection Horizon (T = 10 Days)</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">P10: 98 &bull; P50: 120 &bull; P90: 145</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-container" style="height: 240px;">
+                <canvas id="item-uncertainty-chart" aria-label="10-day quantile forecast distribution" role="img"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Decision History Log (FR-12) -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h3 class="card-title" style="font-size: 0.95rem;">Manager Decision Audit Log</h3>
+                <span class="card-subtitle">Historical accepted, adjusted and rejected decisions</span>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" aria-label="Decision Audit Log">
+                <thead>
+                  <tr>
+                    <th scope="col">Timestamp</th>
+                    <th scope="col">Series</th>
+                    <th scope="col">Action</th>
+                    <th scope="col" class="align-right">Rec. Q</th>
+                    <th scope="col" class="align-right">Final Q</th>
+                    <th scope="col">Reason / Notes</th>
+                    <th scope="col">User</th>
+                  </tr>
+                </thead>
+                <tbody id="decision-log-body">
+                  <!-- Populated from MOCK_DATA.decisions -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: EVALUATION (FR-11)                 -->
+    <!-- ========================================== -->
+    <section id="view-evaluation" class="page-view" aria-labelledby="heading-evaluation">
+      <div class="page-header">
+        <div>
+          <h1 id="heading-evaluation" class="page-title">Model Evaluation &amp; Baseline Benchmarks</h1>
+          <p class="page-description">
+            Time-based holdout evaluation across multi-horizon forecasts. Comparing Seasonal Naive, Moving Average, and LightGBM quantile regression (FR-11).
+          </p>
+        </div>
+      </div>
+
+      <!-- Comparison Metrics Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Holdout Performance Comparison</h2>
+            <span class="card-subtitle">Evaluated on strictly out-of-sample expanding time windows (No data leakage)</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" aria-label="Model Performance Comparison">
+            <thead>
+              <tr>
+                <th scope="col">Model Architecture</th>
+                <th scope="col">Model Type</th>
+                <th scope="col" class="align-right">MAE</th>
+                <th scope="col" class="align-right">RMSE (&sigma;<sub>d</sub>)</th>
+                <th scope="col" class="align-right">WMAPE (%)</th>
+                <th scope="col" class="align-right">MASE</th>
+                <th scope="col" class="align-right">P10–P90 Coverage</th>
+                <th scope="col">Latency</th>
+              </tr>
+            </thead>
+            <tbody id="evaluation-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Charts Grid: Error by Horizon & Quantile Calibration -->
+      <div class="grid-2col">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h2 class="card-title">Error Degradation by Forecast Horizon</h2>
+              <span class="card-subtitle">Mean Absolute Error (MAE) from Day 1 to Day 14</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="horizon-error-chart" aria-label="Error degradation chart across forecast horizons" role="img"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h2 class="card-title">Quantile Calibration &amp; Interval Coverage</h2>
+              <span class="card-subtitle">Target vs Empirical Coverage for P10, P50, P90</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="calibration-chart" aria-label="Quantile calibration chart" role="img"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 4: DATA UPLOAD (FR-01, FR-02)         -->
+    <!-- ========================================== -->
+    <section id="view-upload" class="page-view" aria-labelledby="heading-upload">
+      <div class="page-header">
+        <div>
+          <h1 id="heading-upload" class="page-title">Historical Sales Data Ingestion</h1>
+          <p class="page-description">
+            Upload CSV exports with client-side verification for missing columns, invalid dates, duplicates, and non-numeric entries (FR-01, FR-02).
+          </p>
+        </div>
+      </div>
+
+      <!-- Upload Switcher & Dropzone -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">CSV Ingestion Pipeline</h2>
+            <span class="card-subtitle">Target schema: <strong id="upload-schema-name">Store Item Demand (date, store, item, sales)</strong></span>
+          </div>
+          <div class="page-actions">
+            <button type="button" class="btn btn-outline" id="btn-load-sample-valid" style="font-size: 0.8rem;">
+              Load Valid Sample CSV
+            </button>
+            <button type="button" class="btn btn-danger" id="btn-load-sample-invalid" style="font-size: 0.8rem;">
+              Load Corrupted Sample CSV
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="dropzone" id="csv-dropzone" tabindex="0" role="button" aria-label="Upload CSV file by dropping or selecting">
+            <div class="dropzone-icon">📁</div>
+            <div class="dropzone-title">Drag &amp; drop sales history CSV here</div>
+            <p class="dropzone-desc">Accepts .csv files up to 25 MB. Client-side validation checks date continuity, numeric validity, schema matching, and duplicates before processing.</p>
+            <input type="file" id="csv-file-input" accept=".csv" style="display: none;" aria-label="Select CSV file">
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('csv-file-input').click()">Browse File...</button>
+          </div>
+
+          <!-- Dynamic Validation Results -->
+          <div id="validation-report-area"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 5: MODELS REGISTRY (FR-13)            -->
+    <!-- ========================================== -->
+    <section id="view-models" class="page-view" aria-labelledby="heading-models">
+      <div class="page-header">
+        <div>
+          <h1 id="heading-models" class="page-title">Model Version Registry &amp; Lifecycle</h1>
+          <p class="page-description">
+            Offline Colab-trained model artifacts loaded into production. Switching to a new version is guarded by holdout validation gates (FR-13).
+          </p>
+        </div>
+      </div>
+
+      <!-- Models Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Registered Model Artifacts</h2>
+            <span class="card-subtitle">Strict gate: activation permitted only if new version is not worse than current active version</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" aria-label="Model Versions Registry">
+            <thead>
+              <tr>
+                <th scope="col">Version</th>
+                <th scope="col">Architecture &amp; Features</th>
+                <th scope="col">Trained Date</th>
+                <th scope="col">Validation Window</th>
+                <th scope="col" class="align-right">Holdout RMSE</th>
+                <th scope="col" class="align-right">MAE</th>
+                <th scope="col" class="align-right">Coverage</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="align-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="models-table-body">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-container">
+      <div>
+        <strong>AI Demand Forecasting and Inventory Decision Support</strong> &bull; Track A MVP Reference Implementation
+      </div>
+      <div>
+        Stock &amp; lead times are simulated/user-entered &bull; Built with Plain HTML/CSS/JS
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ADJUST ORDER QUANTITY               -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-adjust" role="dialog" aria-modal="true" aria-labelledby="modal-adjust-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modal-adjust-title" class="modal-title">Adjust Order Quantity</h3>
+        <button type="button" class="modal-close" id="btn-close-adjust" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+          The system recommended <strong id="modal-adjust-rec-qty">110 units</strong> based on safety stock formula. Enter your adjusted override quantity and justification.
+        </p>
+        <div class="form-group">
+          <label for="modal-input-adjusted-qty" class="form-label">
+            <span>Adjusted Order Quantity (Units)</span>
+          </label>
+          <input type="number" id="modal-input-adjusted-qty" class="form-input" min="0" max="10000" value="100">
+        </div>
+        <div class="form-group">
+          <label for="modal-input-adjust-reason" class="form-label">
+            <span>Reason for Adjustment</span>
+          </label>
+          <textarea id="modal-input-adjust-reason" class="form-input" rows="3" placeholder="e.g., Warehouse pallet capacity limit, supplier minimum lot size, cash flow constraint..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" id="btn-cancel-adjust">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-save-adjust">Confirm Adjusted Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- Application Scripts -->
+  <script src="glass.js"></script>
+  <script src="transitions.js"></script>
+  <script src="mock-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
