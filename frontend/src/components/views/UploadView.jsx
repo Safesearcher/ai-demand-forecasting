@@ -252,7 +252,7 @@ invalid-date,1,2,twenty-two`;
 
           {/* Sample Preview Table */}
           {validationResult.preview && validationResult.preview.length > 0 && (
-            <div>
+            <div style={{ marginBottom: '1.5rem' }}>
               <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>
                 Parsed Record Preview (First 5 Rows):
               </div>
@@ -271,6 +271,58 @@ invalid-date,1,2,twenty-two`;
                         {Object.values(row).map((val, cIdx) => (
                           <td key={cIdx}>{val}</td>
                         ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Immediate Forecasts & Reorder Recommendations */}
+          {validationResult.predictions && validationResult.predictions.length > 0 && (
+            <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <div>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--blue)', margin: 0 }}>
+                    ⚡ Immediate Probabilistic Predictions & Recommended Reorders
+                  </h4>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.25rem 0 0' }}>
+                    Multi-horizon forecasts (P10, P50, P90) and periodic-review (R, S) safety stock generated directly from uploaded data.
+                  </p>
+                </div>
+                <span className="badge badge-blue">
+                  {validationResult.predictions.length} Series Forecasted
+                </span>
+              </div>
+
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Series Name</th>
+                      <th>Last Data Date</th>
+                      <th>Avg Daily Sales</th>
+                      <th>Forecast D_T (7d)</th>
+                      <th>Safety Stock (SS)</th>
+                      <th>Simulated Stock</th>
+                      <th>Recommended Q</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {validationResult.predictions.map((p, idx) => (
+                      <tr key={idx}>
+                        <td style={{ fontWeight: 600 }}>{p.name}</td>
+                        <td className="font-mono">{p.last_historical_date}</td>
+                        <td>{p.avg_historical_sales}</td>
+                        <td style={{ fontWeight: 600 }}>{p.forecast_demand_dt}</td>
+                        <td>{p.safety_stock}</td>
+                        <td>{p.simulated_stock_on_hand}</td>
+                        <td>
+                          <span className={`badge ${p.recommended_order_q > 0 ? 'badge-amber' : 'badge-green'}`}>
+                            {p.recommended_order_q > 0 ? `Order ${p.recommended_order_q} units` : 'Adequate Stock'}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

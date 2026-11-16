@@ -152,7 +152,23 @@ npm run dev
 
 The React frontend will be accessible at **`http://localhost:5173`**. Requests to `/api/*` are automatically proxied to the FastAPI server at `http://localhost:8000`.
 
-### 4. Build for Production
+### 4. Or Run via Unified Launcher
+
+Launch both backend and frontend concurrently with a single command:
+
+```bash
+python run_app.py
+```
+
+### 5. Automated Unit Tests
+
+Run the full automated test suite verifying replenishment math, CSV ingestion validation gates, and model monotonicity:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+### 6. Build for Production
 
 To create an optimized production build of the React application:
 
@@ -279,6 +295,11 @@ python scripts/contribution_table.py
 ├── .gitignore
 ├── .env.example
 ├── run_all.py
+├── run_app.py                    # Unified FastAPI + React dev launcher
+├── tests/                        # Automated unit test suite (Deliverable 3)
+│   ├── test_reorder_logic.py     # Replenishment math & stockout tests
+│   ├── test_csv_validation.py    # Schema gate & integrity tests
+│   └── test_model_inference.py   # Model monotonicity & quantile sorting
 ├── configs/
 │   ├── config.yaml
 │   ├── best_A_mlp.yaml

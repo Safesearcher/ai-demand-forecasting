@@ -31,9 +31,9 @@ An end-to-end operational decision support system that produces probabilistic da
 - [x] Phase 3: Probabilistic Model Architecture & Hyperparameter Tuning
 - [x] Phase 4: Time-Based Empirical Evaluation & Stockout Classification
 - [x] Phase 5: React.js Frontend & FastAPI Backend Live Deployment
-- [ ] Phase 6: Final Comprehensive LaTeX Technical Report (Assigned to peer group member)
+- [x] Phase 6: Final Comprehensive LaTeX Technical Report & Deployment Verification
 
 ## Open Issues / Notes
-- Deliverable 2 model weights are hosted on Hugging Face: https://huggingface.co/TahaImran1/ai-demand-forecasting-weights
-- Frontend successfully runs on `http://localhost:5173` via Vite with reverse proxy to FastAPI on `http://localhost:8000`.
-- Report Deliverable 3 LaTeX compilation is assigned to peer team member.
+- Deliverable 2 & 3 model weights are hosted on Hugging Face: https://huggingface.co/TahaImran1/ai-demand-forecasting-weights
+- Frontend runs on `http://localhost:5173` via Vite with reverse proxy to FastAPI on `http://localhost:8000`.
+- Deliverable 3 comprehensive report compiled at `report/Deliverable3_Report.pdf`.

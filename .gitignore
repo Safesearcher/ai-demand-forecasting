@@ -51,6 +51,7 @@ report/*.pdf
 !report/*.tex
 !report/Deliverable1_Report.pdf
 !report/Deliverable2_Report.pdf
+!report/Deliverable3_Report.pdf
 !report/.gitkeep
 
 # ─── LaTeX build artefacts ────────────────────────────────────────

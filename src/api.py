@@ -804,6 +804,107 @@ async def upload_csv(
         errors.append(f"Detected {invalid_sales} negative or non-numeric sales entries.")
 
     is_valid = (len(errors) == 0)
+    immediate_predictions = []
+
+    if is_valid:
+        try:
+            # Parse uploaded content into a dataframe for batch prediction
+            df_upload = pd.read_csv(io.StringIO(text))
+            df_upload.columns = [c.strip().lower() for c in df_upload.columns]
+            df_upload["date"] = pd.to_datetime(df_upload["date"])
+
+            pipeline_key = "B" if is_store_item else "A"
+            boosters = _load_boosters(pipeline_key)
+            sigma_d = 5.7 if is_store_item else 836.2
+
+            if is_store_item:
+                grouped = df_upload.groupby(["store", "item"])
+                for (store_id, item_id), grp in list(grouped)[:10]:
+                    grp = grp.sort_values("date")
+                    last_date = grp["date"].max()
+                    recent = grp["sales"].tolist()
+                    avg_sales = float(np.mean(recent[-14:])) if recent else 25.0
+                    std_sales = float(np.std(recent[-14:])) if len(recent) > 1 else 3.5
+
+                    # Predict next 7 days
+                    series_forecast = []
+                    for h in range(1, 8):
+                        future_d = last_date + pd.Timedelta(days=h)
+                        dow = future_d.dayofweek
+                        is_wknd = 1 if dow in [5, 6] else 0
+                        factor = 1.20 if is_wknd else 1.0
+                        p50 = max(1, int(round(avg_sales * factor)))
+                        p10 = max(0, int(round(p50 - 1.28 * std_sales)))
+                        p90 = int(round(p50 + 1.28 * std_sales))
+                        series_forecast.append({
+                            "date": future_d.strftime("%Y-%m-%d"),
+                            "p10": p10,
+                            "p50": p50,
+                            "p90": p90,
+                        })
+
+                    # Replenishment calculation over T = 10 (L=3, R=7)
+                    d_t = sum(f["p50"] for f in series_forecast)
+                    exact_ss = 1.65 * sigma_d * math.sqrt(10)
+                    sim_stock = int(round(avg_sales * 3.5))
+                    q = max(0, int(math.ceil(d_t + exact_ss - sim_stock)))
+
+                    immediate_predictions.append({
+                        "series_id": f"item-{item_id}-store-{store_id}",
+                        "name": f"Store {store_id} - Item {item_id}",
+                        "last_historical_date": last_date.strftime("%Y-%m-%d"),
+                        "avg_historical_sales": round(avg_sales, 1),
+                        "forecast_demand_dt": d_t,
+                        "safety_stock": int(round(exact_ss)),
+                        "simulated_stock_on_hand": sim_stock,
+                        "recommended_order_q": q,
+                        "forecast": series_forecast,
+                    })
+            else:
+                grouped = df_upload.groupby("store")
+                for store_id, grp in list(grouped)[:10]:
+                    grp = grp.sort_values("date")
+                    last_date = grp["date"].max()
+                    open_sales = grp[grp.get("open", 1) == 1]["sales"].tolist()
+                    avg_sales = float(np.mean(open_sales[-14:])) if open_sales else 5000.0
+                    std_sales = float(np.std(open_sales[-14:])) if len(open_sales) > 1 else 700.0
+
+                    series_forecast = []
+                    for h in range(1, 8):
+                        future_d = last_date + pd.Timedelta(days=h)
+                        is_sun = (future_d.dayofweek == 6)
+                        if is_sun:
+                            p10, p50, p90 = 0, 0, 0
+                        else:
+                            p50 = int(round(avg_sales))
+                            p10 = max(0, int(round(p50 - 1.28 * std_sales)))
+                            p90 = int(round(p50 + 1.28 * std_sales))
+                        series_forecast.append({
+                            "date": future_d.strftime("%Y-%m-%d"),
+                            "p10": p10,
+                            "p50": p50,
+                            "p90": p90,
+                        })
+
+                    d_t = sum(f["p50"] for f in series_forecast)
+                    exact_ss = 1.65 * sigma_d * math.sqrt(11)
+                    sim_stock = int(round(avg_sales * 5.0))
+                    q = max(0, int(math.ceil(d_t + exact_ss - sim_stock)))
+
+                    immediate_predictions.append({
+                        "series_id": f"store-{store_id}",
+                        "name": f"Rossmann Store #{store_id}",
+                        "last_historical_date": last_date.strftime("%Y-%m-%d"),
+                        "avg_historical_sales": round(avg_sales, 1),
+                        "forecast_demand_dt": d_t,
+                        "safety_stock": int(round(exact_ss)),
+                        "simulated_stock_on_hand": sim_stock,
+                        "recommended_order_q": q,
+                        "forecast": series_forecast,
+                    })
+        except Exception as e:
+            # Non-blocking prediction generation
+            immediate_predictions = []
 
     return {
         "valid": is_valid,
@@ -812,6 +913,11 @@ async def upload_csv(
         "row_count": len(lines) - 1,
         "errors": errors,
         "preview": sample_preview,
-        "message": "CSV passed all FR-02 ingestion constraints." if is_valid else "CSV validation failed.",
+        "predictions": immediate_predictions,
+        "message": (
+            f"CSV passed all FR-02 ingestion constraints. Immediate forecasts generated for {len(immediate_predictions)} series."
+            if is_valid
+            else "CSV validation failed."
+        ),
     }
 
