@@ -670,8 +670,32 @@ The software platform adopts a modern, decoupled client-server architecture illu
 
 \noindent\textbf{Zero-Mock Dynamic Data Guarantee:} Adhering strictly to SRS compliance, the frontend contains \textbf{zero hardcoded demo datasets or mock metrics}. Every time-series observation, quantile ribbon coordinate, evaluation metric, and model registry entry rendered in the user interface is fetched dynamically from the FastAPI backend, which reads directly from audited Parquet data stores, Phase 4 holdout evaluation logs, and live model checkpoints.
 
+\subsection{Executive Decision Dashboard}
+The \textbf{Executive Decision Dashboard} (\texttt{DashboardView.jsx}), shown in Figure \ref{fig:screenshot_dashboard}, serves as the high-level operational command center for retail category managers. It surfaces aggregate fleet-wide key performance indicators (KPIs) in real time:
+\begin{itemize}
+    \item \textbf{Monitored Series Count:} Total distinct store-SKU time-series tracks actively ingested and modeled.
+    \item \textbf{Critical Stockout Alerts:} Total series currently breaching the lead-time replenishment safety threshold ($(S + I) < \sum_{t=1}^L \hat{y}_t^{(0.90)}$).
+    \item \textbf{Replenishment Triggers:} Series requiring immediate purchase orders ($Q > 0$).
+    \item \textbf{Healthy Stock Status:} Series with adequate buffer capacity over the protection horizon $T = L + R$.
+\end{itemize}
+The dashboard integrates interactive status-filtering pills (\texttt{All}, \texttt{Critical Risk}, \texttt{Reorder}, and \texttt{Healthy}), multi-pipeline dataset toggling (Pipeline A: Rossmann vs. Pipeline B: Store Item Demand), and a tabular SKU breakdown with on-hand stock, incoming orders, lead time, and instantaneous forecast trajectory previews.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/screenshots/dashboard.png}
+    \caption{Executive Decision Dashboard (\texttt{DashboardView.jsx}): Operational command center presenting high-level fleet inventory KPIs, critical stockout risk counters, dataset selection, and a filtered series table with live stock status indicators.}
+    \label{fig:screenshot_dashboard}
+\end{figure}
+
 \subsection{Interactive Inventory Decision Cockpit}
-The primary operational interface is the \textbf{Inventory Decision Cockpit} (FR-07, FR-08, FR-12), designed for multi-SKU inventory managers and retail controllers.
+The primary operational interface is the \textbf{Inventory Decision Cockpit} (\texttt{ItemDetailView.jsx}), illustrated in Figure \ref{fig:screenshot_item_detail}, designed for granular SKU-level exploration and replenishment parameter tuning (FR-07, FR-08, FR-12).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/screenshots/item_detail_page.png}
+    \caption{Periodic-Review $(R, S)$ Decision Cockpit (\texttt{ItemDetailView.jsx}): Granular SKU drill-down view equipped with interactive sliders for lead time ($L$), review cycle ($R$), stock on hand ($S$), scheduled inbound ($I$), and cycle service level ($z$). The interface illuminates live mathematical formula decomposition, stockout warning banners, and dynamic multi-horizon $P_{10}$--$P_{90}$ quantile uncertainty bands.}
+    \label{fig:screenshot_item_detail}
+\end{figure}
 
 \subsubsection{Mathematical Replenishment Formulation}
 Replenishment recommendations are governed by the periodic-review $(R, S)$ inventory control framework. For a supplier lead time $L$ and review period $R$, the total replenishment exposure horizon is $T = L + R$. Let $D_T$ denote the median cumulative demand forecast ($P_{50}$) over $T$ days:
@@ -695,14 +719,21 @@ To prevent shelf depletion prior to supplier order arrival, a simulated \textbf{
 \end{equation}
 When triggered, the series status transitions to \texttt{Critical Risk}, illuminating visual warning badges across the executive dashboard and series detail views.
 
-\subsubsection{Human-in-the-Loop Decision Recording}
+\subsubsection{Human-in-the-Loop Decision Recording \& Audit Ledger}
 In strict adherence to human-in-the-loop decision-support principles, the system does not place automated supplier purchase orders. Instead, managers are presented with three actionable controls:
 \begin{enumerate}
     \item \textbf{Accept $Q$:} Concurs with the machine-learning-recommended reorder quantity $Q$.
     \item \textbf{Reject:} Overrides the recommendation, recording zero reorder outlay.
     \item \textbf{Adjust Custom Quantity:} Allows the inventory manager to input a modified reorder quantity $Q_{\text{user}}$ along with an operational rationale (e.g., supplier minimum order quantity constraints, seasonal promotional hunches, or warehouse shelf capacity).
 \end{enumerate}
-All decisions are permanently logged via \texttt{POST /api/reorder/decision} into an auditable backend decision ledger (\texttt{\_DECISION\_LOG}) recording timestamps, series identifiers, action types, original quantities, user-adjusted values, and reasoning.
+All decisions are permanently logged via \texttt{POST /api/reorder/decision} into an auditable backend decision ledger (\texttt{\_DECISION\_LOG}) recording timestamps, series identifiers, action types, original quantities, user-adjusted values, safety stock targets, and user rationales, as visualized in the decision ledger interface in Figure \ref{fig:screenshot_dashboard_logs}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/screenshots/dashboard_logs.png}
+    \caption{Auditable Human-in-the-Loop Decision Ledger (\texttt{\_DECISION\_LOG}): Persistent audit trail rendering chronological purchasing actions (Accept, Reject, Custom Adjustment), series identifiers, adjusted quantities, and operational justification logs.}
+    \label{fig:screenshot_dashboard_logs}
+\end{figure}
 
 \subsection{Data Ingestion \& Immediate Prediction Gate}
 To satisfy SRS requirements FR-01 and FR-02 and fulfill Deliverable 3 Track A requirements, the platform provides a dedicated \textbf{CSV Ingestion Gate} (\texttt{UploadView.jsx}).
@@ -712,8 +743,30 @@ To satisfy SRS requirements FR-01 and FR-02 and fulfill Deliverable 3 Track A re
     \item \textbf{Immediate Multi-Horizon Batch Prediction:} Upon validating an uploaded CSV, the backend does not simply report schema compliance; it dynamically extracts historical series features, executes the active LightGBM quantile booster, and returns an immediate batch forecast payload ($P_{10}, P_{50}, P_{90}$) and $(R, S)$ replenishment recommendations for all uploaded series, rendering an interactive forecast table directly in the user's browser.
 \end{itemize}
 
+\subsection{Empirical Holdout Evaluation Dashboard}
+To satisfy SRS requirements FR-04 and FR-11, the platform exposes an interactive \textbf{Empirical Evaluation Dashboard} (\texttt{EvaluationView.jsx}), depicted in Figure \ref{fig:screenshot_evaluation}. This interface surfaces real Phase 4 holdout validation metrics served dynamically by the FastAPI backend (\texttt{GET /api/evaluation}):
+\begin{itemize}
+    \item \textbf{Benchmark Model Leaderboard:} Full comparative performance matrix contrasting \texttt{LightGBMQuantileModel}, \texttt{QuantileMLP}, Seasonal Naive, and Moving Average across MAE, RMSE, WMAPE, Pinball Losses ($P_{10}, P_{50}, P_{90}$), 80\% Central Prediction Interval Coverage, and Mean Interval Width.
+    \item \textbf{Multi-Horizon Degradation Curves:} Dynamic multi-horizon error charts tracking progressive loss in forecast precision across Day 1 through Day 14 horizons.
+    \item \textbf{Subgroup Fairness \& Bias Breakdown:} Granular error decompositions isolating model performance disparities across store types, promotional periods, assortment categories, and sales volume tiers.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/screenshots/evaluation_page.png}
+    \caption{Empirical Evaluation View (\texttt{EvaluationView.jsx}): Production dashboard rendering Phase 4 holdout benchmark leaderboards, multi-horizon error degradation curves (Days 1--14), quantile pinball losses, calibrated 80\% interval coverage, and subgroup fairness analyses directly from backend evaluation logs.}
+    \label{fig:screenshot_evaluation}
+\end{figure}
+
 \subsection{Model Registry \& Dynamic Runtime Switching}
-The platform incorporates a version-controlled \textbf{Model Registry} (FR-13). As detailed in Section \ref{sec:api_contracts}, the registry catalogues all validated models across both pipelines (LightGBM champions, PyTorch QuantileMLP, and heuristic baselines), detailing architecture descriptions, training dates, validation windows, holdout MAE, RMSE, WMAPE, and empirical coverage. Managers can toggle active models in real time via \texttt{POST /api/models/switch}, immediately updating live forecast trajectories and reorder recommendations across the application without requiring backend server restarts.
+The platform incorporates a version-controlled \textbf{Model Registry} (\texttt{ModelsView.jsx}, FR-13), depicted in Figure \ref{fig:screenshot_models}. As detailed in Section \ref{sec:api_contracts}, the registry catalogues all validated models across both pipelines (LightGBM champions, PyTorch QuantileMLP, and heuristic baselines), detailing architecture descriptions, training dates, validation windows, holdout MAE, RMSE, WMAPE, and empirical coverage. Managers can toggle active models in real time via \texttt{POST /api/models/switch}, immediately updating live forecast trajectories and reorder recommendations across the application without requiring backend server restarts.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/screenshots/models_page.png}
+    \caption{Model Registry \& Runtime Switching View (\texttt{ModelsView.jsx}): Version-controlled catalog detailing architecture specifications, training metadata, and holdout performance metrics, with dynamic single-click runtime switching between active models.}
+    \label{fig:screenshot_models}
+\end{figure}
 
 \subsection{REST API Contract Specification}
 \label{sec:api_contracts}
